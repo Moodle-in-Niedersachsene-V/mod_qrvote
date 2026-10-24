@@ -1,0 +1,30 @@
+.path-mod-qrvote .mod_qrvote-qrcode {
+    width: 100%;
+    max-width: 320px;
+    image-rendering: pixelated;
+    background-color: #fff;
+    padding: 8px;
+}
+
+.path-mod-qrvote .mod_qrvote-bar {
+    height: 1.5rem;
+}
+
+.path-mod-qrvote .mod_qrvote-stage:fullscreen {
+    overflow: auto;
+    padding: 2rem;
+    font-size: 1.5rem;
+}
+
+.path-mod-qrvote .mod_qrvote-stage:fullscreen .mod_qrvote-qrcode {
+    max-width: 60vh;
+}
+
+.path-mod-qrvote .mod_qrvote-stage:fullscreen .mod_qrvote-bar {
+    height: 2.5rem;
+}
+
+.path-mod-qrvote.mod_qrvote-votepage .fitem_fgroup .form-check {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}

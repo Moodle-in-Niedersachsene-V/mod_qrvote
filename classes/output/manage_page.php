@@ -1,0 +1,123 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace mod_qrvote\output;
+
+use cm_info;
+use context_module;
+use core\output\help_icon;
+use core\output\renderable;
+use core\output\renderer_base;
+use core\output\templatable;
+use mod_qrvote\local\poll;
+use mod_qrvote\local\results;
+use mod_qrvote\local\round_manager;
+use moodle_url;
+use stdClass;
+
+/**
+ * Teacher page: QR code of the selected round, live result, round controls and round history.
+ *
+ * @package    mod_qrvote
+ * @copyright  2026 Moodle in Niedersachsen e. V.
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class manage_page implements renderable, templatable {
+    /**
+     * Creates the page.
+     *
+     * @param cm_info $cm Course module.
+     * @param stdClass $qrvote Instance record.
+     * @param context_module $context Module context.
+     * @param stdClass|null $round Round to show, null when no round exists yet.
+     * @param bool $canmanage Whether the user may start, stop and delete rounds.
+     */
+    public function __construct(
+        /** @var cm_info Course module. */
+        private cm_info $cm,
+        /** @var stdClass Instance record. */
+        private stdClass $qrvote,
+        /** @var context_module Module context. */
+        private context_module $context,
+        /** @var stdClass|null Round to show. */
+        private ?stdClass $round,
+        /** @var bool Whether the user may manage rounds. */
+        private bool $canmanage
+    ) {
+    }
+
+    /**
+     * Exports the data for the template mod_qrvote/manage.
+     *
+     * @param renderer_base $output Renderer.
+     * @return array Template context.
+     */
+    public function export_for_template(renderer_base $output): array {
+        $viewurl = new moodle_url('/mod/qrvote/view.php', ['id' => $this->cm->id]);
+        $data = [
+            'cmid' => $this->cm->id,
+            'question' => format_text($this->qrvote->question, FORMAT_PLAIN, ['context' => $this->context]),
+            'canmanage' => $this->canmanage,
+            'actionurl' => $viewurl->out(false),
+            'sesskey' => sesskey(),
+            'ispublic' => poll::is_public($this->qrvote),
+            'multiple' => !empty($this->qrvote->multiple),
+            'hasround' => false,
+            'rounds' => [],
+            'hasrounds' => false,
+            'qrhelp' => (new help_icon('qrcode', 'qrvote'))->export_for_template($output),
+        ];
+
+        if ($this->round) {
+            $results = results::for_round($this->qrvote, $this->round, $this->context);
+            $voteurl = new moodle_url('/mod/qrvote/vote.php', ['t' => $this->round->token]);
+            $data['hasround'] = true;
+            $data['round'] = [
+                'id' => (int) $this->round->id,
+                'open' => $results['open'],
+                'started' => userdate($this->round->timestarted),
+                'voteurl' => $voteurl->out(false),
+                'qrcode' => $results['open'] ? self::qr_data_uri($voteurl->out(false)) : '',
+                'results' => $results,
+            ];
+        }
+
+        foreach (round_manager::list_rounds((int) $this->qrvote->id) as $round) {
+            $data['rounds'][] = [
+                'id' => (int) $round->id,
+                'started' => userdate($round->timestarted),
+                'open' => round_manager::accepts_votes($round),
+                'voters' => (int) $round->voters,
+                'selected' => $this->round && (int) $this->round->id === (int) $round->id,
+                'url' => (new moodle_url($viewurl, ['roundid' => $round->id]))->out(false),
+            ];
+        }
+        $data['hasrounds'] = !empty($data['rounds']);
+        return $data;
+    }
+
+    /**
+     * Renders a QR code for a URL as an SVG data URI, generated locally without external services.
+     *
+     * @param string $url URL to encode.
+     * @return string Data URI.
+     */
+    public static function qr_data_uri(string $url): string {
+        $qrcode = new \core_qrcode($url);
+        $svg = $qrcode->getBarcodeSVGcode(8, 8, 'black');
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
+    }
+}

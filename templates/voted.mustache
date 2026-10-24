@@ -1,0 +1,42 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_qrvote/voted
+
+    Confirmation on the vote page after a vote, optionally with the current result.
+
+    Context variables required for this template:
+    * question - Question, already formatted with format_text().
+    * showresults - Whether the result is shown.
+    * results - Result context for mod_qrvote/results.
+
+    Example context (json):
+    {
+        "question": "Which topic should we revise first?",
+        "showresults": true,
+        "results": {"roundid": 3, "open": true, "voters": 2, "options": [
+            {"id": 1, "text": "Fractions", "votes": 2, "percent": 100}
+        ]}
+    }
+}}
+<div class="mod_qrvote-voted">
+    <div class="alert alert-success" role="status">{{#str}}votesaved, mod_qrvote{{/str}}</div>
+    <div class="mod_qrvote-question h5 mb-3">{{{question}}}</div>
+    {{#showresults}}
+    {{#results}}{{>mod_qrvote/results}}{{/results}}
+    {{/showresults}}
+</div>

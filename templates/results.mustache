@@ -1,0 +1,60 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_qrvote/results
+
+    Result of one voting round as horizontal bars. Also rendered by the live view in JavaScript.
+
+    Context variables required for this template:
+    * roundid - Round id.
+    * open - Whether the round accepts votes.
+    * voters - Number of voters.
+    * options - List of options with id, text (formatted), votes and percent.
+
+    Example context (json):
+    {
+        "roundid": 3,
+        "open": true,
+        "voters": 24,
+        "options": [
+            {"id": 1, "text": "Yes", "votes": 15, "percent": 63},
+            {"id": 2, "text": "No", "votes": 9, "percent": 38}
+        ]
+    }
+}}
+<div class="mod_qrvote-results" data-region="results" aria-live="polite">
+    <p class="mod_qrvote-voters mb-3">
+        <span class="badge {{#open}}bg-success{{/open}}{{^open}}bg-secondary{{/open}} me-2">
+            {{#open}}{{#str}}roundopen, mod_qrvote{{/str}}{{/open}}{{^open}}{{#str}}roundclosed, mod_qrvote{{/str}}{{/open}}
+        </span>
+        {{#str}}votersnum, mod_qrvote, {{voters}}{{/str}}
+    </p>
+    <ul class="list-unstyled mb-0">
+        {{#options}}
+        <li class="mb-3">
+            <div class="d-flex justify-content-between">
+                <span class="fw-bold">{{text}}</span>
+                <span>{{#str}}votesnum, mod_qrvote, { "votes": {{votes}}, "percent": {{percent}} }{{/str}}</span>
+            </div>
+            <div class="progress mod_qrvote-bar" role="progressbar" aria-label="{{text}}"
+                aria-valuenow="{{percent}}" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width: {{percent}}%"></div>
+            </div>
+        </li>
+        {{/options}}
+    </ul>
+</div>

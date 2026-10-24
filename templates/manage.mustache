@@ -1,0 +1,153 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_qrvote/manage
+
+    Teacher page with QR code, live result, round controls and round history.
+
+    Context variables required for this template:
+    * cmid - Course module id.
+    * question - Question, already formatted with format_text().
+    * canmanage - Whether the user may start, stop and delete rounds.
+    * actionurl - URL of view.php for the control forms.
+    * sesskey - Session key.
+    * ispublic - Whether voting works without login.
+    * multiple - Whether several options may be chosen.
+    * hasround - Whether a round is selected.
+    * round - Selected round: id, open, started, voteurl, qrcode (data URI), results.
+    * hasrounds - Whether rounds exist.
+    * rounds - Round history: id, started, open, voters, selected, url.
+    * qrhelp - Help icon context.
+
+    Example context (json):
+    {
+        "cmid": 12,
+        "question": "Which topic should we revise first?",
+        "canmanage": true,
+        "actionurl": "https://example.org/mod/qrvote/view.php?id=12",
+        "sesskey": "abc123",
+        "ispublic": true,
+        "multiple": false,
+        "hasround": true,
+        "round": {
+            "id": 3,
+            "open": true,
+            "started": "Saturday, 24 October 2026, 10:15 AM",
+            "voteurl": "https://example.org/mod/qrvote/vote.php?t=0123456789abcdef0123456789abcdef",
+            "qrcode": "data:image/svg+xml;base64,PHN2Zy8+",
+            "results": {"roundid": 3, "open": true, "voters": 2, "options": [
+                {"id": 1, "text": "Fractions", "votes": 2, "percent": 100}
+            ]}
+        },
+        "hasrounds": true,
+        "rounds": [
+            {"id": 3, "started": "Saturday, 24 October 2026, 10:15 AM", "open": true, "voters": 2, "selected": true,
+             "url": "https://example.org/mod/qrvote/view.php?id=12&roundid=3"}
+        ],
+        "qrhelp": {"title": "Help with QR code", "alt": "Help", "url": "#", "ltr": true, "text": "Scan the code."}
+    }
+}}
+<div class="mod_qrvote-manage" data-region="mod_qrvote-manage">
+    <div class="mod_qrvote-question h4 mb-3">{{{question}}}</div>
+    <p class="text-muted small">
+        {{#ispublic}}{{#str}}modepublic, mod_qrvote{{/str}}{{/ispublic}}
+        {{^ispublic}}{{#str}}modelogin, mod_qrvote{{/str}}{{/ispublic}}
+        {{#multiple}} · {{#str}}modemultiple, mod_qrvote{{/str}}{{/multiple}}
+    </p>
+
+    {{#canmanage}}
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <form method="post" action="{{actionurl}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="start">
+            <button type="submit" class="btn btn-primary">{{#str}}startround, mod_qrvote{{/str}}</button>
+        </form>
+        {{#hasround}}{{#round.open}}
+        <form method="post" action="{{actionurl}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="stop">
+            <input type="hidden" name="roundid" value="{{round.id}}">
+            <button type="submit" class="btn btn-secondary">{{#str}}stopround, mod_qrvote{{/str}}</button>
+        </form>
+        {{/round.open}}{{/hasround}}
+    </div>
+    {{/canmanage}}
+
+    {{#hasround}}
+    <div class="mod_qrvote-stage card mb-4" data-region="mod_qrvote-stage">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h3 class="h5 mb-0">{{#str}}roundstarted, mod_qrvote, {{round.started}}{{/str}}</h3>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="mod_qrvote-fullscreen">
+                    {{#str}}fullscreen, mod_qrvote{{/str}}
+                </button>
+            </div>
+            <div class="row">
+                {{#round.open}}
+                <div class="col-md-5 text-center mb-3">
+                    <h4 class="h6">{{#str}}scantovote, mod_qrvote{{/str}} {{#qrhelp}}{{>core/help_icon}}{{/qrhelp}}</h4>
+                    <img class="mod_qrvote-qrcode img-fluid" src="{{round.qrcode}}" alt="{{#str}}qrcodealt, mod_qrvote{{/str}}">
+                    <p class="mod_qrvote-url small text-break mt-2">
+                        <a href="{{round.voteurl}}" target="_blank" rel="noopener">{{round.voteurl}}</a>
+                    </p>
+                </div>
+                {{/round.open}}
+                <div class="{{#round.open}}col-md-7{{/round.open}}{{^round.open}}col-12{{/round.open}}"
+                    data-region="mod_qrvote-results" data-roundid="{{round.id}}">
+                    {{#round.results}}{{>mod_qrvote/results}}{{/round.results}}
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/hasround}}
+    {{^hasround}}
+    <div class="alert alert-info">{{#str}}noroundsyet, mod_qrvote{{/str}}</div>
+    {{/hasround}}
+
+    {{#hasrounds}}
+    <h3 class="h5">{{#str}}roundhistory, mod_qrvote{{/str}}</h3>
+    <table class="table table-sm generaltable mod_qrvote-rounds">
+        <thead>
+            <tr>
+                <th scope="col">{{#str}}roundstart, mod_qrvote{{/str}}</th>
+                <th scope="col">{{#str}}status, mod_qrvote{{/str}}</th>
+                <th scope="col">{{#str}}voters, mod_qrvote{{/str}}</th>
+                <th scope="col"><span class="visually-hidden">{{#str}}actions{{/str}}</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#rounds}}
+            <tr{{#selected}} class="table-active"{{/selected}}>
+                <td><a href="{{url}}">{{started}}</a></td>
+                <td>{{#open}}{{#str}}roundopen, mod_qrvote{{/str}}{{/open}}{{^open}}{{#str}}roundclosed, mod_qrvote{{/str}}{{/open}}</td>
+                <td>{{voters}}</td>
+                <td class="text-end">
+                    {{#canmanage}}
+                    <form method="post" action="{{actionurl}}" class="d-inline">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="roundid" value="{{id}}">
+                        <button type="submit" class="btn btn-link btn-sm text-danger p-0">{{#str}}delete{{/str}}</button>
+                    </form>
+                    {{/canmanage}}
+                </td>
+            </tr>
+            {{/rounds}}
+        </tbody>
+    </table>
+    {{/hasrounds}}
+</div>
