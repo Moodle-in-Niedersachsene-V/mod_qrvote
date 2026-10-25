@@ -24,7 +24,11 @@
     * open - Whether the round accepts votes.
     * scheduled - Whether the window of a scheduled round has not started yet.
     * voters - Number of voters.
-    * options - List of options with id, text (formatted), votes and percent.
+    * israting - Whether voters give 1 to 5 stars.
+    * hasaverage - Whether an average rating exists.
+    * average - Average rating, formatted.
+    * averagestars - Average rating as star glyphs.
+    * options - List of options with id, text (plain text), votes, percent and stars (glyphs, rating only).
 
     Example context (json):
     {
@@ -32,9 +36,13 @@
         "open": true,
         "scheduled": false,
         "voters": 24,
+        "israting": false,
+        "hasaverage": false,
+        "average": "",
+        "averagestars": "",
         "options": [
-            {"id": 1, "text": "Yes", "votes": 15, "percent": 63},
-            {"id": 2, "text": "No", "votes": 9, "percent": 38}
+            {"id": 1, "text": "Yes", "votes": 15, "percent": 63, "stars": ""},
+            {"id": 2, "text": "No", "votes": 9, "percent": 38, "stars": ""}
         ]
     }
 }}
@@ -47,11 +55,20 @@
         </span>
         {{#str}}votersnum, mod_qrvote, {{voters}}{{/str}}
     </p>
+    {{#hasaverage}}
+    <p class="mod_qrvote-average h4 mb-3">
+        <span class="mod_qrvote-stars" aria-hidden="true">{{averagestars}}</span>
+        {{#str}}ratingaverage, mod_qrvote, {{average}}{{/str}}
+    </p>
+    {{/hasaverage}}
     <ul class="list-unstyled mb-0">
         {{#options}}
         <li class="mb-3">
             <div class="d-flex justify-content-between">
-                <span class="fw-bold">{{text}}</span>
+                {{#stars}}
+                <span class="fw-bold"><span class="mod_qrvote-stars" aria-hidden="true">{{stars}}</span><span class="visually-hidden">{{text}}</span></span>
+                {{/stars}}
+                {{^stars}}<span class="fw-bold">{{text}}</span>{{/stars}}
                 <span>{{#str}}votesnum, mod_qrvote, { "votes": {{votes}}, "percent": {{percent}} }{{/str}}</span>
             </div>
             <div class="progress mod_qrvote-bar" role="progressbar" aria-label="{{text}}"

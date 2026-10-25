@@ -66,10 +66,6 @@ class mod_qrvote_mod_form extends moodleform_mod {
         $mform->addRule('question', null, 'required', null, 'client');
         $mform->addHelpButton('question', 'question', 'qrvote');
 
-        $mform->addElement('selectyesno', 'multiple', get_string('multiple', 'qrvote'));
-        $mform->setDefault('multiple', 0);
-        $mform->addHelpButton('multiple', 'multiple', 'qrvote');
-
         if (get_config('mod_qrvote', 'allowpublic')) {
             $mform->addElement('selectyesno', 'publicvote', get_string('publicvote', 'qrvote'));
             $mform->setDefault('publicvote', 1);
@@ -95,6 +91,21 @@ class mod_qrvote_mod_form extends moodleform_mod {
             $mform->addElement('static', 'optionslocked', '', get_string('optionslocked', 'qrvote'));
         }
 
+        $mform->addElement('select', 'votetype', get_string('votetype', 'qrvote'), [
+            poll::TYPE_CHOICE => get_string('votetypechoice', 'qrvote'),
+            poll::TYPE_RATING => get_string('votetyperating', 'qrvote'),
+        ]);
+        $mform->setDefault('votetype', poll::TYPE_CHOICE);
+        $mform->addHelpButton('votetype', 'votetype', 'qrvote');
+
+        $mform->addElement('static', 'ratingnote', '', get_string('ratingnote', 'qrvote', poll::RATING_MAX));
+        $mform->hideIf('ratingnote', 'votetype', 'neq', (string) poll::TYPE_RATING);
+
+        $mform->addElement('selectyesno', 'multiple', get_string('multiple', 'qrvote'));
+        $mform->setDefault('multiple', 0);
+        $mform->addHelpButton('multiple', 'multiple', 'qrvote');
+        $mform->hideIf('multiple', 'votetype', 'eq', (string) poll::TYPE_RATING);
+
         $repeated = [
             $mform->createElement('text', 'option', get_string('optionno', 'qrvote'), ['size' => '60']),
         ];
@@ -102,6 +113,7 @@ class mod_qrvote_mod_form extends moodleform_mod {
             'option' => [
                 'type' => PARAM_TEXT,
                 'helpbutton' => ['option', 'qrvote'],
+                'hideif' => ['votetype', 'eq', (string) poll::TYPE_RATING],
             ],
         ];
         $existing = empty($this->_instance) ? 0 : count(poll::get_options((int) $this->_instance));
@@ -116,8 +128,10 @@ class mod_qrvote_mod_form extends moodleform_mod {
             true
         );
 
+        $mform->hideIf('option_add_fields', 'votetype', 'eq', (string) poll::TYPE_RATING);
+
         if ($locked) {
-            $frozen = ['multiple'];
+            $frozen = ['multiple', 'votetype'];
             for ($index = 0; $index < $repeats; $index++) {
                 $frozen[] = 'option[' . $index . ']';
             }
@@ -140,6 +154,10 @@ class mod_qrvote_mod_form extends moodleform_mod {
         if (empty($this->_instance)) {
             return;
         }
+        if (poll::is_rating((object) $defaultvalues)) {
+            // Star options are generated, the text fields stay empty.
+            return;
+        }
         $index = 0;
         foreach (poll::get_options((int) $this->_instance) as $option) {
             $defaultvalues['option[' . $index . ']'] = $option->text;
@@ -148,7 +166,7 @@ class mod_qrvote_mod_form extends moodleform_mod {
     }
 
     /**
-     * Checks the question and that at least two options are filled in.
+     * Checks the question and, for text options, that at least two options are filled in.
      *
      * @param array $data Submitted data.
      * @param array $files Submitted files.
@@ -162,7 +180,8 @@ class mod_qrvote_mod_form extends moodleform_mod {
         }
 
         $locked = !empty($this->_instance) && poll::has_votes((int) $this->_instance);
-        if (!$locked) {
+        $rating = (int) ($data['votetype'] ?? poll::TYPE_CHOICE) === poll::TYPE_RATING;
+        if (!$locked && !$rating) {
             $texts = $data['option'] ?? [];
             if (count(poll::clean_option_texts($texts)) < poll::OPTIONS_MIN) {
                 $errors['option[0]'] = get_string('error:toofewoptions', 'qrvote', poll::OPTIONS_MIN);

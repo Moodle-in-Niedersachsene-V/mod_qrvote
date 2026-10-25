@@ -23,6 +23,8 @@ use core_privacy\local\request\contextlist;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
+use mod_qrvote\local\poll;
+use mod_qrvote\local\results;
 
 /**
  * Privacy provider for mod_qrvote.
@@ -129,7 +131,8 @@ class provider implements
                 $started[] = (object) ['timestarted' => transform::datetime($round->timestarted)];
             }
 
-            $sql = 'SELECT v.id, o.text, v.timecreated
+            $rating = (int) $DB->get_field('qrvote', 'votetype', ['id' => $qrvoteid]) === poll::TYPE_RATING;
+            $sql = 'SELECT v.id, o.text, o.sortorder, v.timecreated
                       FROM {qrvote_votes} v
                       JOIN {qrvote_rounds} r ON r.id = v.roundid
                       JOIN {qrvote_options} o ON o.id = v.optionid
@@ -137,7 +140,10 @@ class provider implements
                   ORDER BY v.timecreated ASC, v.id ASC';
             $votes = [];
             foreach ($DB->get_records_sql($sql, ['qrvoteid' => $qrvoteid, 'userid' => $userid]) as $vote) {
-                $votes[] = (object) ['answer' => $vote->text, 'timecreated' => transform::datetime($vote->timecreated)];
+                $votes[] = (object) [
+                    'answer' => $rating ? results::stars_label(poll::stars($vote)) : $vote->text,
+                    'timecreated' => transform::datetime($vote->timecreated),
+                ];
             }
 
             if (!$started && !$votes) {

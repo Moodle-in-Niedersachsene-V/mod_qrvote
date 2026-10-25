@@ -32,6 +32,15 @@ class poll {
     /** @var int Minimum number of options a vote needs. */
     public const OPTIONS_MIN = 2;
 
+    /** @var int Voters choose from text options. */
+    public const TYPE_CHOICE = 0;
+
+    /** @var int Voters give 1 to RATING_MAX stars. */
+    public const TYPE_RATING = 1;
+
+    /** @var int Highest number of stars. */
+    public const RATING_MAX = 5;
+
     /**
      * Creates an instance and its options from the activity form data.
      *
@@ -48,7 +57,7 @@ class poll {
 
         $transaction = $DB->start_delegated_transaction();
         $id = (int) $DB->insert_record('qrvote', $record);
-        self::save_options($id, self::clean_option_texts($data->option ?? []));
+        self::save_options($id, self::option_texts($record, $data));
         $transaction->allow_commit();
         return $id;
     }
@@ -68,10 +77,10 @@ class poll {
 
         $transaction = $DB->start_delegated_transaction();
         if (self::has_votes($record->id)) {
-            // The answer mode stays as voted while results exist.
-            unset($record->multiple);
+            // Answer type and mode stay as voted while results exist.
+            unset($record->multiple, $record->votetype);
         } else {
-            self::save_options($record->id, self::clean_option_texts($data->option ?? []));
+            self::save_options($record->id, self::option_texts($record, $data));
         }
         $DB->update_record('qrvote', $record);
         $transaction->allow_commit();
@@ -155,6 +164,40 @@ class poll {
     }
 
     /**
+     * Tells whether an instance is a star rating.
+     *
+     * @param stdClass $qrvote Instance record.
+     * @return bool True for a rating.
+     */
+    public static function is_rating(stdClass $qrvote): bool {
+        return (int) ($qrvote->votetype ?? self::TYPE_CHOICE) === self::TYPE_RATING;
+    }
+
+    /**
+     * Returns the number of stars an option of a rating stands for.
+     *
+     * @param stdClass $option Option record.
+     * @return int Stars from 1 to RATING_MAX.
+     */
+    public static function stars(stdClass $option): int {
+        return (int) $option->sortorder;
+    }
+
+    /**
+     * Returns the option texts to store: the cleaned form texts, or one option per star for a rating.
+     *
+     * @param stdClass $record Instance record built from the form.
+     * @param stdClass $data Form data.
+     * @return string[] Option texts in display order.
+     */
+    private static function option_texts(stdClass $record, stdClass $data): array {
+        if (self::is_rating($record)) {
+            return array_map('strval', range(1, self::RATING_MAX));
+        }
+        return self::clean_option_texts($data->option ?? []);
+    }
+
+    /**
      * Trims option texts and drops empty ones, keeping the order.
      *
      * @param array $texts Raw option texts from the form.
@@ -178,13 +221,16 @@ class poll {
      * @return stdClass Record without id and timestamps.
      */
     private static function instance_record(stdClass $data): stdClass {
+        $rating = (int) ($data->votetype ?? self::TYPE_CHOICE) === self::TYPE_RATING;
         return (object) [
             'course' => (int) $data->course,
             'name' => $data->name,
             'intro' => $data->intro ?? '',
             'introformat' => (int) ($data->introformat ?? FORMAT_HTML),
             'question' => trim($data->question),
-            'multiple' => empty($data->multiple) ? 0 : 1,
+            // A rating always takes exactly one number of stars.
+            'multiple' => ($rating || empty($data->multiple)) ? 0 : 1,
+            'votetype' => $rating ? self::TYPE_RATING : self::TYPE_CHOICE,
             'publicvote' => empty($data->publicvote) ? 0 : 1,
             'showresults' => empty($data->showresults) ? 0 : 1,
         ];

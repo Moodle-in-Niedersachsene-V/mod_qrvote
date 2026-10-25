@@ -27,8 +27,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_qrvote';
-$plugin->version = 2026102402;
-$plugin->release = '1.1.0';
+$plugin->version = 2026102403;
+$plugin->release = '1.2.0';
 $plugin->requires = 2025041400;
 $plugin->supported = [500, 503];
 $plugin->maturity = MATURITY_BETA;

@@ -57,7 +57,7 @@ $string['modelogin'] = 'Abstimmen erfordert eine Anmeldung.';
 $string['modemultiple'] = 'Mehrere Antworten sind möglich.';
 $string['modepublic'] = 'Abstimmen ist ohne Anmeldung möglich.';
 $string['modulename'] = 'QR-Abstimmung';
-$string['modulename_help'] = 'Eine QR-Abstimmung stellt eine Frage mit festen Antworten. Die Lehrkraft startet eine Runde und zeigt den QR-Code, zum Beispiel am Beamer. Die Teilnehmenden scannen den Code mit dem Smartphone und stimmen ab, ohne Anmeldung, wenn die Aktivität das erlaubt. Das Ergebnis erscheint live als Balken.
+$string['modulename_help'] = 'Eine QR-Abstimmung stellt eine Frage mit festen Antworten oder einer Bewertung mit 1 bis 5 Sternen. Die Lehrkraft startet eine Runde und zeigt den QR-Code, zum Beispiel am Beamer. Die Teilnehmenden scannen den Code mit dem Smartphone und stimmen ab, ohne Anmeldung, wenn die Aktivität das erlaubt. Das Ergebnis erscheint live als Balken.
 
 Jede Runde hat einen eigenen Link. Beendet die Lehrkraft die Runde, wird der Link ungültig, sodass ein alter QR-Code nicht erneut verwendet werden kann.
 
@@ -71,7 +71,7 @@ $string['option'] = 'Antwortmöglichkeit';
 $string['option_help'] = 'Geben Sie je Feld eine Antwort ein. Leere Felder werden ignoriert. Es sind mindestens zwei Antworten nötig. Sobald Stimmen vorliegen, lassen sich die Antworten nicht mehr ändern, damit die Ergebnisse stimmen.';
 $string['optionno'] = 'Antwort {no}';
 $string['options'] = 'Antwortmöglichkeiten';
-$string['optionslocked'] = 'Es wurden bereits Stimmen abgegeben. Antworten und Antwortmodus können nicht mehr geändert werden. Löschen Sie alle Runden, um sie wieder zu bearbeiten.';
+$string['optionslocked'] = 'Es wurden bereits Stimmen abgegeben. Antwortart, Antworten und Antwortmodus können nicht mehr geändert werden. Löschen Sie alle Runden, um sie wieder zu bearbeiten.';
 $string['pluginadministration'] = 'QR-Abstimmung verwalten';
 $string['pluginname'] = 'QR-Abstimmung';
 $string['print'] = 'Drucken';
@@ -103,6 +103,8 @@ $string['question'] = 'Frage';
 $string['question_help'] = 'Die Frage, die Abstimmende über den Antworten sehen, zum Beispiel auf dem Smartphone.';
 $string['ratelimit'] = 'Stimmen je Netzwerkadresse und Minute';
 $string['ratelimit_desc'] = 'Höchstzahl an Stimmen, die je Minute von einer Netzwerkadresse angenommen werden. Eine Schulklasse teilt sich meist eine Adresse, daher sollte der Wert deutlich über der Klassengröße liegen. 0 schaltet die Begrenzung ab.';
+$string['ratingaverage'] = 'Durchschnitt: {$a} von 5';
+$string['ratingnote'] = 'Abstimmende tippen 1 bis {$a} Sterne an. Die Antworten werden automatisch angelegt; das Ergebnis zeigt den Durchschnitt und wie oft welche Sternzahl vergeben wurde.';
 $string['resetrounds'] = 'Alle Abstimmungsrunden und Stimmen löschen';
 $string['round'] = 'Runde';
 $string['roundclosed'] = 'Beendet';
@@ -118,6 +120,8 @@ $string['savestation'] = 'Station speichern';
 $string['scantovote'] = 'Zum Abstimmen scannen';
 $string['showresults'] = 'Ergebnis den Abstimmenden zeigen';
 $string['showresults_help'] = 'Bei "Ja" sehen Abstimmende nach ihrer Stimmabgabe das aktuelle Ergebnis der Runde.';
+$string['starsnum'] = '{$a} Sterne';
+$string['starsone'] = '1 Stern';
 $string['startround'] = 'Neue Runde starten';
 $string['stationintro'] = 'Eine Station ist eine Abstimmungsrunde mit festem Zeitfenster, zum Beispiel ein Vortrag in einem Raum. Ihr QR-Code steht sofort fest und lässt sich vorab ausdrucken. Stimmen werden nur zwischen Beginn und Ende angenommen. Alle Stationen dieser Aktivität verwenden dieselbe Frage und dieselben Antworten; jede Station hat ihr eigenes Ergebnis.';
 $string['stationlocation'] = 'Ort';
@@ -138,5 +142,13 @@ $string['votersnum'] = '{$a} Abstimmende';
 $string['votesaved'] = 'Vielen Dank, Ihre Stimme wurde gespeichert.';
 $string['votesettings'] = 'Abstimmung';
 $string['votesnum'] = '{$a->votes} ({$a->percent} %)';
+$string['votetype'] = 'Antwortart';
+$string['votetype_help'] = 'Antworten zur Auswahl: Abstimmende wählen aus den Antworten, die Sie unten eintragen.
+
+Sterne: Abstimmende vergeben 1 bis 5 Sterne, zum Beispiel zur Bewertung eines Vortrags. Das Ergebnis zeigt die Durchschnittsbewertung und die Verteilung.
+
+Sobald Stimmen vorliegen, lässt sich die Antwortart nicht mehr ändern.';
+$string['votetypechoice'] = 'Antworten zur Auswahl';
+$string['votetyperating'] = 'Sterne (1 bis 5)';
 $string['windowdays'] = '{$a->open} bis {$a->close}';
 $string['windowsameday'] = '{$a->date}, {$a->open} bis {$a->close}';

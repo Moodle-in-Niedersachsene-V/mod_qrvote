@@ -36,7 +36,8 @@ class results {
      * @param stdClass $qrvote Instance record.
      * @param stdClass $round Round record.
      * @param context_module $context Module context, used to format option texts.
-     * @return array Keys roundid, open, scheduled, voters and options (id, text as plain text, votes, percent).
+     * @return array Keys roundid, open, scheduled, voters, israting, hasaverage, average, averagestars and
+     *     options (id, text as plain text, votes, percent, stars).
      */
     public static function for_round(stdClass $qrvote, stdClass $round, context_module $context): array {
         global $DB;
@@ -53,25 +54,66 @@ class results {
             [$round->id]
         );
 
+        $rating = poll::is_rating($qrvote);
         $options = [];
+        $starsum = 0;
         foreach ($rows as $row) {
             $votes = (int) $row->votes;
-            $options[] = [
+            $option = [
                 'id' => (int) $row->id,
-                // Not HTML-escaped here: templates and web service clients escape the text themselves.
-                'text' => format_string($row->text, true, ['context' => $context, 'escape' => false]),
                 'votes' => $votes,
                 'percent' => $voters > 0 ? (int) round(100 * $votes / $voters) : 0,
+                'stars' => '',
             ];
+            if ($rating) {
+                $stars = poll::stars($row);
+                $starsum += $stars * $votes;
+                $option['text'] = self::stars_label($stars);
+                $option['stars'] = self::stars_glyphs($stars);
+            } else {
+                // Not HTML-escaped here: templates and web service clients escape the text themselves.
+                $option['text'] = format_string($row->text, true, ['context' => $context, 'escape' => false]);
+            }
+            $options[] = $option;
+        }
+        if ($rating) {
+            // Five stars first, as on rating sites.
+            $options = array_reverse($options);
         }
 
         $state = round_manager::state($round);
+        $average = ($rating && $voters > 0) ? $starsum / $voters : 0.0;
         return [
             'roundid' => (int) $round->id,
             'open' => $state === round_manager::STATE_OPEN,
             'scheduled' => $state === round_manager::STATE_SCHEDULED,
             'voters' => (int) $voters,
+            'israting' => $rating,
+            'hasaverage' => $rating && $voters > 0,
+            'average' => $rating && $voters > 0 ? format_float($average, 1) : '',
+            'averagestars' => $rating && $voters > 0 ? self::stars_glyphs((int) round($average)) : '',
             'options' => $options,
         ];
+    }
+
+    /**
+     * Returns the accessible label for a number of stars, for example "4 stars".
+     *
+     * @param int $stars Number of stars.
+     * @return string Label.
+     */
+    public static function stars_label(int $stars): string {
+        return $stars === 1 ? get_string('starsone', 'qrvote') : get_string('starsnum', 'qrvote', $stars);
+    }
+
+    /**
+     * Returns filled and empty star glyphs for a number of stars, for example four filled and one empty.
+     *
+     * @param int $stars Number of filled stars.
+     * @return string Glyphs.
+     */
+    public static function stars_glyphs(int $stars): string {
+        $stars = max(0, min(poll::RATING_MAX, $stars));
+        return str_repeat("\u{2605}", $stars) . str_repeat("\u{2606}", poll::RATING_MAX - $stars);
     }
 }

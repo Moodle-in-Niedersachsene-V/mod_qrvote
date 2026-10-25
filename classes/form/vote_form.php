@@ -24,7 +24,10 @@ require_once($CFG->libdir . '/formslib.php');
  * Ballot shown on the vote page.
  *
  * Custom data: token (string), voterkey (string), question (formatted string), multiple (bool),
- * options (array of id => formatted text).
+ * options (array of id => formatted text), rating (bool) and stars (array of id => number of stars, rating only).
+ *
+ * A rating is a row of star radio buttons. Each star carries its number for screen readers, and the
+ * styles in styles.css fill the stars up to the chosen one. Without CSS support the radio buttons stay visible.
  *
  * @package    mod_qrvote
  * @copyright  2026 Moodle in Niedersachsen e. V.
@@ -46,7 +49,15 @@ class vote_form extends \moodleform {
         $mform->setType('voterkey', PARAM_ALPHANUM);
 
         $elements = [];
-        if ($this->_customdata['multiple']) {
+        $separator = \html_writer::empty_tag('br');
+        if (!empty($this->_customdata['rating'])) {
+            $separator = '';
+            foreach ($this->_customdata['stars'] as $id => $stars) {
+                $label = \html_writer::span("\u{2605}", 'mod_qrvote-star', ['aria-hidden' => 'true']) .
+                    \html_writer::span(s($options[$id]), 'visually-hidden');
+                $elements[] = $mform->createElement('radio', 'choice', '', $label, $id, ['data-stars' => $stars]);
+            }
+        } else if ($this->_customdata['multiple']) {
             foreach ($options as $id => $text) {
                 $elements[] = $mform->createElement('advcheckbox', 'option' . $id, '', $text, ['group' => 1], [0, 1]);
             }
@@ -55,7 +66,7 @@ class vote_form extends \moodleform {
                 $elements[] = $mform->createElement('radio', 'choice', '', $text, $id);
             }
         }
-        $mform->addGroup($elements, 'ballot', $this->_customdata['question'], \html_writer::empty_tag('br'), false);
+        $mform->addGroup($elements, 'ballot', $this->_customdata['question'], $separator, false);
         if ($this->_customdata['multiple']) {
             foreach (array_keys($options) as $id) {
                 $mform->setType('option' . $id, PARAM_BOOL);

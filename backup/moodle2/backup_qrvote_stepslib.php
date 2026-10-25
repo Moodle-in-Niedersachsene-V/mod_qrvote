@@ -40,7 +40,7 @@ class backup_qrvote_activity_structure_step extends backup_activity_structure_st
         $userinfo = $this->get_setting_value('userinfo');
 
         $qrvote = new backup_nested_element('qrvote', ['id'], [
-            'name', 'intro', 'introformat', 'question', 'multiple', 'publicvote', 'showresults',
+            'name', 'intro', 'introformat', 'question', 'multiple', 'publicvote', 'showresults', 'votetype',
             'timecreated', 'timemodified',
         ]);
         $options = new backup_nested_element('options');

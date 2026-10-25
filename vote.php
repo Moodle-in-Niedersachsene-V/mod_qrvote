@@ -102,9 +102,19 @@ if ($voted) {
     exit;
 }
 
+$rating = poll::is_rating($qrvote);
 $options = [];
+$stars = [];
 foreach (poll::get_options((int) $qrvote->id) as $option) {
-    $options[(int) $option->id] = format_string($option->text, true, ['context' => $context]);
+    if ($rating) {
+        $stars[(int) $option->id] = poll::stars($option);
+        $options[(int) $option->id] = results::stars_label(poll::stars($option));
+    } else {
+        $options[(int) $option->id] = format_string($option->text, true, ['context' => $context]);
+    }
+}
+if ($rating) {
+    $PAGE->add_body_class('mod_qrvote-ratingvote');
 }
 $form = new vote_form($url, [
     'token' => $round->token,
@@ -112,6 +122,8 @@ $form = new vote_form($url, [
     'question' => format_string($qrvote->question, true, ['context' => $context]),
     'multiple' => !empty($qrvote->multiple),
     'options' => $options,
+    'rating' => $rating,
+    'stars' => $stars,
 ]);
 
 $error = '';

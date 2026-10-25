@@ -28,3 +28,59 @@
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
 }
+
+.path-mod-qrvote .mod_qrvote-stars {
+    color: #e0a800;
+    letter-spacing: 0.1em;
+}
+
+.mod_qrvote-ratingvote #fgroup_id_ballot .form-check-label {
+    margin-right: 0.25rem;
+    cursor: pointer;
+}
+
+.mod_qrvote-ratingvote #fgroup_id_ballot .mod_qrvote-star {
+    display: inline-block;
+    font-size: 2.75rem;
+    line-height: 1;
+    color: #adb5bd;
+}
+
+/* Browsers that support :has() show only the stars; older browsers keep the visible radio buttons. */
+@supports selector(:has(*)) {
+    .mod_qrvote-ratingvote #fgroup_id_ballot .form-check-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="1"]:checked) label:has(input[data-stars="1"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="2"]:checked) label:has(input[data-stars="1"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="2"]:checked) label:has(input[data-stars="2"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="3"]:checked) label:has(input[data-stars="1"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="3"]:checked) label:has(input[data-stars="2"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="3"]:checked) label:has(input[data-stars="3"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="4"]:checked) label:has(input[data-stars="1"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="4"]:checked) label:has(input[data-stars="2"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="4"]:checked) label:has(input[data-stars="3"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="4"]:checked) label:has(input[data-stars="4"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="5"]:checked) label:has(input[data-stars="1"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="5"]:checked) label:has(input[data-stars="2"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="5"]:checked) label:has(input[data-stars="3"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="5"]:checked) label:has(input[data-stars="4"]) .mod_qrvote-star,
+    .mod_qrvote-ratingvote #fgroup_id_ballot:has(input[data-stars="5"]:checked) label:has(input[data-stars="5"]) .mod_qrvote-star {
+        color: #e0a800;
+    }
+
+    .mod_qrvote-ratingvote #fgroup_id_ballot label:has(.form-check-input:focus-visible) .mod_qrvote-star {
+        outline: 2px solid #0f6cbf;
+        outline-offset: 2px;
+    }
+}
+
+.path-mod-qrvote.mod_qrvote-votepage #page {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 1rem;
+}

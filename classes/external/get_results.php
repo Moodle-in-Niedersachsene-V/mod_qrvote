@@ -49,7 +49,7 @@ class get_results extends external_api {
      *
      * @param int $cmid Course module id.
      * @param int $roundid Round id.
-     * @return array Result with roundid, open, scheduled, voters and options.
+     * @return array Result as returned by results::for_round().
      */
     public static function execute(int $cmid, int $roundid): array {
         global $DB;
@@ -80,12 +80,17 @@ class get_results extends external_api {
             'open' => new external_value(PARAM_BOOL, 'Whether the round accepts votes'),
             'scheduled' => new external_value(PARAM_BOOL, 'Whether the voting window of a scheduled round has not started yet'),
             'voters' => new external_value(PARAM_INT, 'Number of voters'),
+            'israting' => new external_value(PARAM_BOOL, 'Whether voters give 1 to 5 stars'),
+            'hasaverage' => new external_value(PARAM_BOOL, 'Whether an average rating exists'),
+            'average' => new external_value(PARAM_TEXT, 'Average rating, formatted with one decimal; empty without votes'),
+            'averagestars' => new external_value(PARAM_TEXT, 'Average rating as star glyphs; empty without votes'),
             'options' => new external_multiple_structure(
                 new external_single_structure([
                     'id' => new external_value(PARAM_INT, 'Option id'),
                     'text' => new external_value(PARAM_TEXT, 'Option text as plain text, filtered with format_string()'),
                     'votes' => new external_value(PARAM_INT, 'Number of votes'),
                     'percent' => new external_value(PARAM_INT, 'Share of voters who chose the option'),
+                    'stars' => new external_value(PARAM_TEXT, 'Star glyphs of a rating option; empty for text options'),
                 ])
             ),
         ]);

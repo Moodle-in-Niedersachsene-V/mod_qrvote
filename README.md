@@ -8,7 +8,8 @@ Maintained by **Moodle in Niedersachsen e. V.**
 
 ## Features
 
-- One question with fixed answers, single or multiple choice.
+- One question with fixed answers (single or multiple choice) or a rating with 1 to 5 stars.
+  A rating shows the average and how often each number of stars was given.
 - Voting rounds: each round has its own random link. Closing the round, or reaching the maximum
   round duration, makes the link and its QR code invalid.
 - Voting without login (optional per activity, can be switched off for the whole site).
@@ -43,6 +44,14 @@ The `amd/build` folder is created with Grunt (`npx grunt amd`) before a release.
 | Allow voting without login | on | If off, every vote requires login and enrolment. |
 | Maximum round duration | 4 hours | An open round stops accepting votes after this time. |
 | Votes per network address and minute | 200 | Limits submissions; 0 switches the limit off. A school class usually shares one address. |
+
+## Star rating
+
+Set *Answer type* to *Stars (1 to 5)* in the activity settings. Voters tap a star on their phone
+(keyboard: arrow keys); the answers are created automatically. The result shows the average with
+one decimal and the distribution, five stars first. Stations can use star ratings too, which suits
+feedback on talks. Browsers without support for the CSS `:has()` selector show plain radio buttons
+next to the stars, so voting always works.
 
 ## Stations (printed QR codes)
 
@@ -109,6 +118,8 @@ auf Wunsch ohne Anmeldung. Das Ergebnis erscheint live als Balken.
 
 - Jede Runde hat einen eigenen Zufallslink, der beim Beenden der Runde oder nach der maximalen
   Rundendauer ungültig wird.
+- Antwortart Sterne: Abstimmende vergeben 1 bis 5 Sterne; das Ergebnis zeigt Durchschnitt und
+  Verteilung.
 - Stationen für Tagungen und Projekttage: je Vortrag eine Runde mit Titel, Raum und festem
   Zeitfenster. Die QR-Codes stehen vorab fest und lassen sich als PDF-Aushang drucken (ein A4-Blatt
   je Station). Vor Beginn zeigt der Code einen Wartehinweis, nach dem Ende ist die Station beendet.
