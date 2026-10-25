@@ -77,4 +77,28 @@ final class manage_page_test extends \advanced_testcase {
         $this->assertSame('', $data['round']['qrcode']);
         $this->assertStringNotContainsString('name="action"', $html);
     }
+
+    public function test_station_shows_qr_before_its_window_and_print_link(): void {
+        global $PAGE;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        $qrvote = $this->getDataGenerator()->create_module('qrvote', ['course' => $course->id]);
+        $context = \context_module::instance($qrvote->cmid);
+        $round = round_manager::schedule($qrvote, 'Talk & more', 'Room 1', time() + HOURSECS, time() + 2 * HOURSECS, $context);
+        $cm = get_fast_modinfo($course)->get_cm($qrvote->cmid);
+        $PAGE->set_url('/mod/qrvote/view.php', ['id' => $cm->id]);
+        $output = $PAGE->get_renderer('core');
+
+        $data = (new manage_page($cm, $qrvote, $context, $round, true))->export_for_template($output);
+        $html = $output->render_from_template('mod_qrvote/manage', $data);
+
+        $this->assertTrue($data['round']['scheduled']);
+        $this->assertTrue($data['round']['showqr']);
+        $this->assertTrue($data['hasstations']);
+        $this->assertStringContainsString('print.php?id=' . $cm->id . '&roundid=' . $round->id, $data['round']['printurl']);
+        $this->assertStringContainsString('Talk &amp; more', $html);
+        $this->assertStringNotContainsString('&amp;amp;', $html);
+    }
 }

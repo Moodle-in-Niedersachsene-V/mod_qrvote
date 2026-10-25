@@ -164,6 +164,28 @@ final class poll_test extends \advanced_testcase {
         $this->assertFalse($DB->record_exists('qrvote_rounds', ['qrvoteid' => $newcm->instance]));
     }
 
+    public function test_duplicate_copies_stations_with_new_token(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/course/lib.php');
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        $qrvote = $this->getDataGenerator()->create_module('qrvote', ['course' => $course->id]);
+        $context = \context_module::instance($qrvote->cmid);
+        $station = round_manager::schedule($qrvote, 'Talk', 'Room 1', time() + HOURSECS, time() + 2 * HOURSECS, $context);
+
+        $newcm = duplicate_module($course, get_fast_modinfo($course)->get_cm($qrvote->cmid));
+
+        $copies = round_manager::get_scheduled((int) $newcm->instance);
+        $this->assertCount(1, $copies);
+        $copy = reset($copies);
+        $this->assertSame('Talk', $copy->title);
+        $this->assertEquals($station->timeopen, $copy->timeopen);
+        $this->assertNotSame($station->token, $copy->token);
+        $this->assertSame(round_manager::STATE_SCHEDULED, round_manager::state($copy));
+    }
+
     /**
      * Reads the stored instance.
      *

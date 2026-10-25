@@ -36,7 +36,7 @@ class results {
      * @param stdClass $qrvote Instance record.
      * @param stdClass $round Round record.
      * @param context_module $context Module context, used to format option texts.
-     * @return array Keys roundid, open, voters and options (id, text as plain text, votes, percent).
+     * @return array Keys roundid, open, scheduled, voters and options (id, text as plain text, votes, percent).
      */
     public static function for_round(stdClass $qrvote, stdClass $round, context_module $context): array {
         global $DB;
@@ -65,9 +65,11 @@ class results {
             ];
         }
 
+        $state = round_manager::state($round);
         return [
             'roundid' => (int) $round->id,
-            'open' => round_manager::accepts_votes($round),
+            'open' => $state === round_manager::STATE_OPEN,
+            'scheduled' => $state === round_manager::STATE_SCHEDULED,
             'voters' => (int) $voters,
             'options' => $options,
         ];

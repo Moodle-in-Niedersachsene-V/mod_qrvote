@@ -22,6 +22,7 @@
     Context variables required for this template:
     * roundid - Round id.
     * open - Whether the round accepts votes.
+    * scheduled - Whether the window of a scheduled round has not started yet.
     * voters - Number of voters.
     * options - List of options with id, text (formatted), votes and percent.
 
@@ -29,6 +30,7 @@
     {
         "roundid": 3,
         "open": true,
+        "scheduled": false,
         "voters": 24,
         "options": [
             {"id": 1, "text": "Yes", "votes": 15, "percent": 63},
@@ -38,8 +40,10 @@
 }}
 <div class="mod_qrvote-results" data-region="results" aria-live="polite">
     <p class="mod_qrvote-voters mb-3">
-        <span class="badge {{#open}}bg-success{{/open}}{{^open}}bg-secondary{{/open}} me-2">
-            {{#open}}{{#str}}roundopen, mod_qrvote{{/str}}{{/open}}{{^open}}{{#str}}roundclosed, mod_qrvote{{/str}}{{/open}}
+        <span class="badge {{#open}}bg-success{{/open}}{{#scheduled}}bg-info{{/scheduled}}{{^open}}{{^scheduled}}bg-secondary{{/scheduled}}{{/open}} me-2">
+            {{#open}}{{#str}}roundopen, mod_qrvote{{/str}}{{/open}}
+            {{#scheduled}}{{#str}}roundscheduled, mod_qrvote{{/str}}{{/scheduled}}
+            {{^open}}{{^scheduled}}{{#str}}roundclosed, mod_qrvote{{/str}}{{/scheduled}}{{/open}}
         </span>
         {{#str}}votersnum, mod_qrvote, {{voters}}{{/str}}
     </p>

@@ -20,12 +20,22 @@
     Confirmation on the vote page after a vote, optionally with the current result.
 
     Context variables required for this template:
+    * name - Activity name, formatted with format_string().
+    * isstation - Whether the round is a station.
+    * title - Station title.
+    * location - Station location.
+    * window - Formatted voting window.
     * question - Question, already formatted with format_text().
     * showresults - Whether the result is shown.
     * results - Result context for mod_qrvote/results.
 
     Example context (json):
     {
+        "name": "Conference feedback",
+        "isstation": false,
+        "title": "",
+        "location": "",
+        "window": "",
         "question": "Which topic should we revise first?",
         "showresults": true,
         "results": {"roundid": 3, "open": true, "voters": 2, "options": [
@@ -34,6 +44,7 @@
     }
 }}
 <div class="mod_qrvote-voted">
+    {{>mod_qrvote/station}}
     <div class="alert alert-success" role="status">{{#str}}votesaved, mod_qrvote{{/str}}</div>
     <div class="mod_qrvote-question h5 mb-3">{{{question}}}</div>
     {{#showresults}}

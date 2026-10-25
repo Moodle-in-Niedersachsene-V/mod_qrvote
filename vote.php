@@ -73,22 +73,31 @@ $PAGE->add_body_class('mod_qrvote-votepage');
 $question = format_text($qrvote->question, FORMAT_PLAIN, ['context' => $context]);
 $voted = !empty($SESSION->mod_qrvote_voted[$round->id]) ||
     ($userid > 0 && vote_service::has_voted($round, '', $userid));
-$resultsdata = [
+$isstation = round_manager::is_scheduled($round);
+$pagedata = [
+    // Plain text for the templates, which escape it themselves.
+    'name' => format_string($qrvote->name, true, ['context' => $context, 'escape' => false]),
     'question' => $question,
+    'isstation' => $isstation,
+    'title' => $isstation ? format_string($round->title, true, ['context' => $context, 'escape' => false]) : '',
+    'location' => $isstation ? format_string($round->location, true, ['context' => $context, 'escape' => false]) : '',
+    'window' => $isstation ? round_manager::format_window((int) $round->timeopen, (int) $round->timeclose) : '',
     'showresults' => !empty($qrvote->showresults) && $voted,
     'results' => results::for_round($qrvote, $round, $context),
 ];
 
-if (!round_manager::accepts_votes($round)) {
+$state = round_manager::state($round);
+if ($state !== round_manager::STATE_OPEN) {
     echo $OUTPUT->header();
-    echo $OUTPUT->render_from_template('mod_qrvote/closed', $resultsdata);
+    $template = $state === round_manager::STATE_SCHEDULED ? 'mod_qrvote/notopen' : 'mod_qrvote/closed';
+    echo $OUTPUT->render_from_template($template, $pagedata);
     echo $OUTPUT->footer();
     exit;
 }
 
 if ($voted) {
     echo $OUTPUT->header();
-    echo $OUTPUT->render_from_template('mod_qrvote/voted', $resultsdata);
+    echo $OUTPUT->render_from_template('mod_qrvote/voted', $pagedata);
     echo $OUTPUT->footer();
     exit;
 }
@@ -121,7 +130,7 @@ if ($data = $form->get_data()) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($qrvote->name), 2);
+echo $OUTPUT->render_from_template('mod_qrvote/station', $pagedata);
 if ($error !== '') {
     echo $OUTPUT->notification($error, \core\output\notification::NOTIFY_ERROR);
 }

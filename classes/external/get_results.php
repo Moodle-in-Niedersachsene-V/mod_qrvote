@@ -49,7 +49,7 @@ class get_results extends external_api {
      *
      * @param int $cmid Course module id.
      * @param int $roundid Round id.
-     * @return array Result with roundid, open, voters and options.
+     * @return array Result with roundid, open, scheduled, voters and options.
      */
     public static function execute(int $cmid, int $roundid): array {
         global $DB;
@@ -78,6 +78,7 @@ class get_results extends external_api {
         return new external_single_structure([
             'roundid' => new external_value(PARAM_INT, 'Round id'),
             'open' => new external_value(PARAM_BOOL, 'Whether the round accepts votes'),
+            'scheduled' => new external_value(PARAM_BOOL, 'Whether the voting window of a scheduled round has not started yet'),
             'voters' => new external_value(PARAM_INT, 'Number of voters'),
             'options' => new external_multiple_structure(
                 new external_single_structure([

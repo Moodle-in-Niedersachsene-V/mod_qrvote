@@ -15,6 +15,8 @@ Maintained by **Moodle in Niedersachsen e. V.**
 - Voting with login for enrolled participants, one vote per user and round.
 - Live result for teachers, refreshed every three seconds, with a full-screen view for the projector.
 - Optional result for voters after they have voted.
+- Stations for conferences and project days: rounds with a title, a room and a fixed time window.
+  Their QR codes exist in advance and can be printed as a PDF notice, one A4 page per station.
 - Round history with deletion of single rounds.
 - QR codes are generated on the server with Moodle's own library; no external service is used.
 - Backup, restore, duplication and course reset.
@@ -41,6 +43,22 @@ The `amd/build` folder is created with Grunt (`npx grunt amd`) before a release.
 | Allow voting without login | on | If off, every vote requires login and enrolment. |
 | Maximum round duration | 4 hours | An open round stops accepting votes after this time. |
 | Votes per network address and minute | 200 | Limits submissions; 0 switches the limit off. A school class usually shares one address. |
+
+## Stations (printed QR codes)
+
+For talks and workshops, add a **station** per talk on the activity page (*Add station*): title,
+room, start and end of voting. All stations share the activity's question and answers; each
+station has its own result.
+
+- The QR code of a station exists as soon as the station is saved and does not change when the
+  details are edited later, so notices can be printed in advance (*Print all stations (PDF)*).
+- Before the start, scanning shows that voting has not started yet. After the end, the station is
+  closed. The window is checked on every request; no scheduled task is involved.
+- An end time is required, because a printed notice can be scanned by anyone passing by.
+- A teacher can close a station early. Saving the station again reopens it.
+- Starting a live round does not close running stations.
+- Stations are kept when the activity is duplicated or backed up without user data; they get a
+  new QR code in the copy.
 
 ## How voting without login works
 
@@ -91,6 +109,9 @@ auf Wunsch ohne Anmeldung. Das Ergebnis erscheint live als Balken.
 
 - Jede Runde hat einen eigenen Zufallslink, der beim Beenden der Runde oder nach der maximalen
   Rundendauer ungültig wird.
+- Stationen für Tagungen und Projekttage: je Vortrag eine Runde mit Titel, Raum und festem
+  Zeitfenster. Die QR-Codes stehen vorab fest und lassen sich als PDF-Aushang drucken (ein A4-Blatt
+  je Station). Vor Beginn zeigt der Code einen Wartehinweis, nach dem Ende ist die Station beendet.
 - Abstimmen ohne Anmeldung ist je Aktivität wählbar und lässt sich in der Website-Administration
   für alle Kurse abschalten.
 - Ohne Anmeldung wird jeder Browser je Runde einmal gezählt. Ein zweites Gerät oder ein privates

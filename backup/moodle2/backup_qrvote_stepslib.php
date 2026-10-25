@@ -23,7 +23,8 @@
  */
 
 /**
- * Defines the backup structure. Round tokens and secrets are not backed up.
+ * Defines the backup structure. Round tokens and secrets are not backed up. Stations are always
+ * backed up, live rounds and votes only with user data.
  *
  * @package    mod_qrvote
  * @copyright  2026 Moodle in Niedersachsen e. V.
@@ -45,7 +46,9 @@ class backup_qrvote_activity_structure_step extends backup_activity_structure_st
         $options = new backup_nested_element('options');
         $option = new backup_nested_element('option', ['id'], ['text', 'sortorder']);
         $rounds = new backup_nested_element('rounds');
-        $round = new backup_nested_element('round', ['id'], ['status', 'timestarted', 'timeclosed', 'usermodified']);
+        $round = new backup_nested_element('round', ['id'], [
+            'status', 'timestarted', 'timeclosed', 'usermodified', 'title', 'location', 'timeopen', 'timeclose',
+        ]);
         $votes = new backup_nested_element('votes');
         $vote = new backup_nested_element('vote', ['id'], ['optionid', 'voterhash', 'userid', 'timecreated']);
 
@@ -61,6 +64,12 @@ class backup_qrvote_activity_structure_step extends backup_activity_structure_st
         if ($userinfo) {
             $round->set_source_table('qrvote_rounds', ['qrvoteid' => backup::VAR_PARENTID], 'id ASC');
             $vote->set_source_table('qrvote_votes', ['roundid' => backup::VAR_PARENTID], 'id ASC');
+        } else {
+            // Stations are part of the activity setup, so they are kept without user data; votes are not.
+            $round->set_source_sql(
+                'SELECT * FROM {qrvote_rounds} WHERE qrvoteid = ? AND timeopen > 0 ORDER BY id ASC',
+                [backup::VAR_PARENTID]
+            );
         }
 
         $round->annotate_ids('user', 'usermodified');

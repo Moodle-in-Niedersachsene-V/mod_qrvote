@@ -67,6 +67,7 @@ class manage_page implements renderable, templatable {
      */
     public function export_for_template(renderer_base $output): array {
         $viewurl = new moodle_url('/mod/qrvote/view.php', ['id' => $this->cm->id]);
+        $stations = round_manager::get_scheduled((int) $this->qrvote->id);
         $data = [
             'cmid' => $this->cm->id,
             'question' => format_text($this->qrvote->question, FORMAT_PLAIN, ['context' => $this->context]),
@@ -75,6 +76,9 @@ class manage_page implements renderable, templatable {
             'sesskey' => sesskey(),
             'ispublic' => poll::is_public($this->qrvote),
             'multiple' => !empty($this->qrvote->multiple),
+            'addstationurl' => (new moodle_url('/mod/qrvote/schedule.php', ['id' => $this->cm->id]))->out(false),
+            'hasstations' => !empty($stations),
+            'printallurl' => (new moodle_url('/mod/qrvote/print.php', ['id' => $this->cm->id]))->out(false),
             'hasround' => false,
             'rounds' => [],
             'hasrounds' => false,
@@ -84,28 +88,63 @@ class manage_page implements renderable, templatable {
         if ($this->round) {
             $results = results::for_round($this->qrvote, $this->round, $this->context);
             $voteurl = new moodle_url('/mod/qrvote/vote.php', ['t' => $this->round->token]);
+            $state = round_manager::state($this->round);
             $data['hasround'] = true;
-            $data['round'] = [
-                'id' => (int) $this->round->id,
-                'open' => $results['open'],
-                'started' => userdate($this->round->timestarted),
+            $data['round'] = $this->describe($this->round, $viewurl) + [
                 'voteurl' => $voteurl->out(false),
-                'qrcode' => $results['open'] ? self::qr_data_uri($voteurl->out(false)) : '',
+                // A station keeps its QR code until it closes, because the code is printed in advance.
+                'showqr' => $state !== round_manager::STATE_CLOSED,
+                'qrcode' => $state !== round_manager::STATE_CLOSED ? self::qr_data_uri($voteurl->out(false)) : '',
                 'results' => $results,
             ];
         }
 
         foreach (round_manager::list_rounds((int) $this->qrvote->id) as $round) {
-            $data['rounds'][] = [
-                'id' => (int) $round->id,
-                'started' => userdate($round->timestarted),
-                'open' => round_manager::accepts_votes($round),
+            $data['rounds'][] = $this->describe($round, $viewurl) + [
                 'voters' => (int) $round->voters,
                 'selected' => $this->round && (int) $this->round->id === (int) $round->id,
-                'url' => (new moodle_url($viewurl, ['roundid' => $round->id]))->out(false),
             ];
         }
         $data['hasrounds'] = !empty($data['rounds']);
+        return $data;
+    }
+
+    /**
+     * Describes a round for the template: label, window, state and links.
+     *
+     * @param stdClass $round Round record.
+     * @param moodle_url $viewurl URL of the activity page.
+     * @return array Template data.
+     */
+    private function describe(stdClass $round, moodle_url $viewurl): array {
+        $state = round_manager::state($round);
+        $scheduled = round_manager::is_scheduled($round);
+        // Title and location as plain text; the template escapes them.
+        $plain = ['context' => $this->context, 'escape' => false];
+        $data = [
+            'id' => (int) $round->id,
+            'started' => userdate($round->timestarted),
+            'isstation' => $scheduled,
+            'title' => $scheduled ? format_string($round->title, true, $plain) : '',
+            'location' => $scheduled ? format_string($round->location, true, $plain) : '',
+            'window' => '',
+            'open' => $state === round_manager::STATE_OPEN,
+            'scheduled' => $state === round_manager::STATE_SCHEDULED,
+            'url' => (new moodle_url($viewurl, ['roundid' => $round->id]))->out(false),
+            'editurl' => '',
+            'printurl' => '',
+        ];
+        if ($scheduled) {
+            $data['window'] = round_manager::format_window((int) $round->timeopen, (int) $round->timeclose);
+            $data['editurl'] = (new moodle_url('/mod/qrvote/schedule.php', [
+                'id' => $this->cm->id,
+                'roundid' => $round->id,
+            ]))->out(false);
+            $data['printurl'] = (new moodle_url('/mod/qrvote/print.php', [
+                'id' => $this->cm->id,
+                'roundid' => $round->id,
+            ]))->out(false);
+        }
         return $data;
     }
 

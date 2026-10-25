@@ -27,6 +27,9 @@ class vote_rejected extends \moodle_exception {
     /** @var string The round no longer accepts votes. */
     public const ROUND_CLOSED = 'error:roundclosed';
 
+    /** @var string The voting window of a scheduled round has not started yet. */
+    public const ROUND_NOT_OPEN = 'error:roundnotopen';
+
     /** @var string This device or user has already voted in the round. */
     public const ALREADY_VOTED = 'error:alreadyvoted';
 

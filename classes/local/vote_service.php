@@ -42,7 +42,7 @@ class vote_service {
      * @param int $userid Id of the logged-in voter, 0 for a public vote.
      * @param context_module $context Module context.
      * @return void
-     * @throws vote_rejected When the round is closed, the voter already voted or the options are invalid.
+     * @throws vote_rejected When the round is not open, the voter already voted or the options are invalid.
      */
     public static function submit(
         stdClass $qrvote,
@@ -54,7 +54,14 @@ class vote_service {
     ): void {
         global $DB;
 
-        if ((int) $round->qrvoteid !== (int) $qrvote->id || !round_manager::accepts_votes($round)) {
+        if ((int) $round->qrvoteid !== (int) $qrvote->id) {
+            throw new vote_rejected(vote_rejected::ROUND_CLOSED);
+        }
+        $state = round_manager::state($round);
+        if ($state === round_manager::STATE_SCHEDULED) {
+            throw new vote_rejected(vote_rejected::ROUND_NOT_OPEN);
+        }
+        if ($state !== round_manager::STATE_OPEN) {
             throw new vote_rejected(vote_rejected::ROUND_CLOSED);
         }
         $optionids = self::validate_options($qrvote, $optionids);

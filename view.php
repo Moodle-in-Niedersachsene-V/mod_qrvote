@@ -90,7 +90,7 @@ $completion->set_module_viewed($cm);
 echo $OUTPUT->header();
 
 if ($canviewresults) {
-    $round = $roundid ? round_manager::get((int) $qrvote->id, $roundid) : round_manager::get_latest((int) $qrvote->id);
+    $round = $roundid ? round_manager::get((int) $qrvote->id, $roundid) : round_manager::get_default((int) $qrvote->id);
     $page = new manage_page($cm, $qrvote, $context, $round, $canmanage);
     echo $OUTPUT->render_from_template('mod_qrvote/manage', $page->export_for_template($OUTPUT));
     if ($round && round_manager::accepts_votes($round)) {
@@ -98,7 +98,7 @@ if ($canviewresults) {
     }
     $PAGE->requires->js_call_amd('mod_qrvote/fullscreen', 'init');
 } else {
-    $round = round_manager::get_latest((int) $qrvote->id);
+    $round = round_manager::get_default((int) $qrvote->id);
     $open = $round && round_manager::accepts_votes($round);
     $canvote = poll::is_public($qrvote) || has_capability('mod/qrvote:vote', $context);
     echo $OUTPUT->render_from_template('mod_qrvote/student', [
