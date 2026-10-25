@@ -48,6 +48,7 @@ class restore_qrvote_activity_structure_step extends restore_activity_structure_
         ];
         if ($this->get_setting_value('userinfo')) {
             $paths[] = new restore_path_element('qrvote_vote', '/activity/qrvote/rounds/round/votes/vote');
+            $paths[] = new restore_path_element('qrvote_word', '/activity/qrvote/rounds/round/words/word');
         }
         return $this->prepare_activity_structure($paths);
     }
@@ -131,6 +132,24 @@ class restore_qrvote_activity_structure_step extends restore_activity_structure_
         }
         $data->userid = empty($data->userid) ? null : $this->get_mappingid('user', $data->userid, null);
         $DB->insert_record('qrvote_votes', $data);
+    }
+
+    /**
+     * Restores a word cloud term.
+     *
+     * The voter hash is kept for the grouping per voter. Because the restored round has a new secret,
+     * earlier terms no longer count towards the limit of a device in a restored station.
+     *
+     * @param array $data Element data.
+     * @return void
+     */
+    protected function process_qrvote_word($data) {
+        global $DB;
+
+        $data = (object) $data;
+        $data->roundid = $this->get_new_parentid('qrvote_round');
+        $data->userid = empty($data->userid) ? null : $this->get_mappingid('user', $data->userid, null);
+        $DB->insert_record('qrvote_words', $data);
     }
 
     /**

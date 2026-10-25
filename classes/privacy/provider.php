@@ -29,8 +29,9 @@ use mod_qrvote\local\results;
 /**
  * Privacy provider for mod_qrvote.
  *
- * Personal data exists only for teachers who started rounds and for votes in activities that
- * require login. Public votes store no user id; their voter hash cannot be linked to a person.
+ * Personal data exists only for teachers who started rounds and for votes and terms in activities
+ * that require login. Public votes and terms store no user id; their voter hash cannot be linked to
+ * a person. A public term is free text, so it is exported or deleted only together with its round.
  *
  * @package    mod_qrvote
  * @copyright  2026 Moodle in Niedersachsen e. V.
@@ -56,6 +57,11 @@ class provider implements
             'optionid' => 'privacy:metadata:qrvote_votes:optionid',
             'timecreated' => 'privacy:metadata:qrvote_votes:timecreated',
         ], 'privacy:metadata:qrvote_votes');
+        $collection->add_database_table('qrvote_words', [
+            'userid' => 'privacy:metadata:qrvote_words:userid',
+            'word' => 'privacy:metadata:qrvote_words:word',
+            'timecreated' => 'privacy:metadata:qrvote_words:timecreated',
+        ], 'privacy:metadata:qrvote_words');
         return $collection;
     }
 
@@ -72,12 +78,14 @@ class provider implements
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modname
                   JOIN {qrvote_rounds} r ON r.qrvoteid = cm.instance
              LEFT JOIN {qrvote_votes} v ON v.roundid = r.id AND v.userid = :voterid
-                 WHERE r.usermodified = :starterid OR v.id IS NOT NULL';
+             LEFT JOIN {qrvote_words} w ON w.roundid = r.id AND w.userid = :wordid
+                 WHERE r.usermodified = :starterid OR v.id IS NOT NULL OR w.id IS NOT NULL';
         $contextlist = new contextlist();
         $contextlist->add_from_sql($sql, [
             'contextlevel' => CONTEXT_MODULE,
             'modname' => 'qrvote',
             'voterid' => $userid,
+            'wordid' => $userid,
             'starterid' => $userid,
         ]);
         return $contextlist;
@@ -102,6 +110,11 @@ class provider implements
         $userlist->add_from_sql(
             'userid',
             "SELECT v.userid $base JOIN {qrvote_votes} v ON v.roundid = r.id WHERE cm.id = :cmid AND v.userid IS NOT NULL",
+            $params
+        );
+        $userlist->add_from_sql(
+            'userid',
+            "SELECT w.userid $base JOIN {qrvote_words} w ON w.roundid = r.id WHERE cm.id = :cmid AND w.userid IS NOT NULL",
             $params
         );
     }
@@ -146,12 +159,23 @@ class provider implements
                 ];
             }
 
-            if (!$started && !$votes) {
+            $sql = 'SELECT w.id, w.word, w.timecreated
+                      FROM {qrvote_words} w
+                      JOIN {qrvote_rounds} r ON r.id = w.roundid
+                     WHERE r.qrvoteid = :qrvoteid AND w.userid = :userid
+                  ORDER BY w.timecreated ASC, w.id ASC';
+            $words = [];
+            foreach ($DB->get_records_sql($sql, ['qrvoteid' => $qrvoteid, 'userid' => $userid]) as $word) {
+                $words[] = (object) ['term' => $word->word, 'timecreated' => transform::datetime($word->timecreated)];
+            }
+
+            if (!$started && !$votes && !$words) {
                 continue;
             }
             $data = (object) [
                 get_string('privacy:roundsstarted', 'qrvote') => $started,
                 get_string('privacy:votes', 'qrvote') => $votes,
+                get_string('privacy:words', 'qrvote') => $words,
             ];
             writer::with_context($context)->export_data([], $data);
         }
@@ -181,6 +205,7 @@ class provider implements
         }
         [$insql, $params] = $DB->get_in_or_equal($roundids);
         $DB->delete_records_select('qrvote_votes', "userid IS NOT NULL AND roundid $insql", $params);
+        $DB->delete_records_select('qrvote_words', "userid IS NOT NULL AND roundid $insql", $params);
         $DB->set_field('qrvote_rounds', 'usermodified', 0, ['qrvoteid' => $qrvoteid]);
     }
 
@@ -230,11 +255,13 @@ class provider implements
         }
         [$roundsql, $roundparams] = $DB->get_in_or_equal($roundids, SQL_PARAMS_NAMED, 'round');
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'user');
-        $DB->delete_records_select(
-            'qrvote_votes',
-            "roundid $roundsql AND userid $usersql",
-            array_merge($roundparams, $userparams)
-        );
+        foreach (['qrvote_votes', 'qrvote_words'] as $table) {
+            $DB->delete_records_select(
+                $table,
+                "roundid $roundsql AND userid $usersql",
+                array_merge($roundparams, $userparams)
+            );
+        }
         $DB->set_field_select(
             'qrvote_rounds',
             'usermodified',

@@ -32,7 +32,8 @@
     * printallurl - URL of the PDF with one page per station.
     * hasround - Whether a round is selected.
     * round - Selected round: id, started, isstation, title, location, window, open, scheduled, url, editurl,
-      printurl, voteurl, showqr, qrcode (data URI), results.
+      printurl, voteurl, showqr, qrcode (data URI), results, hasmoderation, moderation (text, normalized,
+      count, hidden).
     * hasrounds - Whether rounds exist.
     * rounds - Rounds: id, started, isstation, title, location, window, open, scheduled, url, editurl, printurl,
       voters, selected.
@@ -60,6 +61,8 @@
             "printurl": "https://example.org/mod/qrvote/print.php?id=12&roundid=3",
             "voteurl": "https://example.org/mod/qrvote/vote.php?t=0123456789abcdef0123456789abcdef",
             "showqr": true,
+            "hasmoderation": false,
+            "moderation": [],
             "qrcode": "data:image/svg+xml;base64,PHN2Zy8+",
             "results": {"roundid": 3, "open": false, "scheduled": true, "voters": 0, "options": [
                 {"id": 1, "text": "Very good", "votes": 0, "percent": 0}
@@ -144,6 +147,31 @@
                     {{#round.results}}{{>mod_qrvote/results}}{{/round.results}}
                 </div>
             </div>
+            {{#round.hasmoderation}}
+            <details class="mod_qrvote-moderation mt-3">
+                <summary>{{#str}}moderatewords, mod_qrvote{{/str}}</summary>
+                <ul class="list-unstyled mt-2 mb-0">
+                    {{#round.moderation}}
+                    <li class="d-flex justify-content-between align-items-center border-bottom py-1">
+                        <span{{#hidden}} class="text-muted text-decoration-line-through"{{/hidden}}>{{text}} ({{count}})</span>
+                        <form method="post" action="{{actionurl}}" class="d-inline">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}">
+                            <input type="hidden" name="roundid" value="{{round.id}}">
+                            <input type="hidden" name="word" value="{{normalized}}">
+                            {{#hidden}}
+                            <input type="hidden" name="action" value="showword">
+                            <button type="submit" class="btn btn-link btn-sm p-0">{{#str}}showword, mod_qrvote{{/str}}</button>
+                            {{/hidden}}
+                            {{^hidden}}
+                            <input type="hidden" name="action" value="hideword">
+                            <button type="submit" class="btn btn-link btn-sm text-danger p-0">{{#str}}hideword, mod_qrvote{{/str}}</button>
+                            {{/hidden}}
+                        </form>
+                    </li>
+                    {{/round.moderation}}
+                </ul>
+            </details>
+            {{/round.hasmoderation}}
         </div>
     </div>
     {{/hasround}}

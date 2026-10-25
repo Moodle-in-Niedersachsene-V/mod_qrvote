@@ -102,6 +102,31 @@ final class provider_test extends provider_testcase {
         $this->assertEquals(0, $DB->get_field('qrvote_rounds', 'usermodified', ['id' => $round->id]));
     }
 
+    public function test_word_cloud_terms_are_exported_and_deleted(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $student = $generator->create_and_enrol($course, 'student');
+        $qrvote = $generator->create_module('qrvote', [
+            'course' => $course->id, 'publicvote' => 0, 'votetype' => \mod_qrvote\local\poll::TYPE_WORDCLOUD, 'option' => [],
+        ]);
+        $context = \context_module::instance($qrvote->cmid);
+        $this->setAdminUser();
+        $round = round_manager::start($qrvote, $context);
+        \mod_qrvote\local\word_service::submit($qrvote, $round, 'My idea', '', (int) $student->id, $context);
+        $this->setUser();
+
+        $this->assertEquals([$context->id], provider::get_contexts_for_userid((int) $student->id)->get_contextids());
+        $this->export_context_data_for_user((int) $student->id, $context, 'mod_qrvote');
+        $data = writer::with_context($context)->get_data([]);
+        $this->assertSame('My idea', $data->{get_string('privacy:words', 'qrvote')}[0]->term);
+
+        provider::delete_data_for_user(new approved_contextlist($student, 'mod_qrvote', [$context->id]));
+        $this->assertFalse($DB->record_exists('qrvote_words', ['userid' => $student->id]));
+    }
+
     public function test_delete_for_context_keeps_public_votes(): void {
         global $DB;
 

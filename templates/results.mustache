@@ -28,6 +28,10 @@
     * hasaverage - Whether an average rating exists.
     * average - Average rating, formatted.
     * averagestars - Average rating as star glyphs.
+    * iswordcloud - Whether voters submit terms.
+    * haswords - Whether visible terms exist.
+    * entries - Number of visible terms.
+    * words - Terms with text, count and size (1 to 5).
     * options - List of options with id, text (plain text), votes, percent and stars (glyphs, rating only).
 
     Example context (json):
@@ -40,6 +44,10 @@
         "hasaverage": false,
         "average": "",
         "averagestars": "",
+        "iswordcloud": false,
+        "haswords": false,
+        "entries": 0,
+        "words": [],
         "options": [
             {"id": 1, "text": "Yes", "votes": 15, "percent": 63, "stars": ""},
             {"id": 2, "text": "No", "votes": 9, "percent": 38, "stars": ""}
@@ -53,7 +61,7 @@
             {{#scheduled}}{{#str}}roundscheduled, mod_qrvote{{/str}}{{/scheduled}}
             {{^open}}{{^scheduled}}{{#str}}roundclosed, mod_qrvote{{/str}}{{/scheduled}}{{/open}}
         </span>
-        {{#str}}votersnum, mod_qrvote, {{voters}}{{/str}}
+        {{#str}}votersnum, mod_qrvote, {{voters}}{{/str}}{{#iswordcloud}} · {{#str}}entriesnum, mod_qrvote, {{entries}}{{/str}}{{/iswordcloud}}
     </p>
     {{#hasaverage}}
     <p class="mod_qrvote-average h4 mb-3">
@@ -61,6 +69,18 @@
         {{#str}}ratingaverage, mod_qrvote, {{average}}{{/str}}
     </p>
     {{/hasaverage}}
+    {{#iswordcloud}}
+    {{#haswords}}
+    <ul class="mod_qrvote-cloud list-inline text-center mb-0" aria-label="{{#str}}wordcloud, mod_qrvote{{/str}}">
+        {{#words}}
+        <li class="list-inline-item mod_qrvote-cloud-{{size}}">{{text}}<span class="visually-hidden"> ({{count}})</span></li>
+        {{/words}}
+    </ul>
+    {{/haswords}}
+    {{^haswords}}
+    <p class="text-muted mb-0">{{#str}}nowordsyet, mod_qrvote{{/str}}</p>
+    {{/haswords}}
+    {{/iswordcloud}}
     <ul class="list-unstyled mb-0">
         {{#options}}
         <li class="mb-3">

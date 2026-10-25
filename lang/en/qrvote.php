@@ -33,11 +33,13 @@ $string['cannotvote'] = 'You cannot vote in this activity.';
 $string['deleteround'] = 'Delete round';
 $string['deleteroundconfirm'] = 'Do you really want to delete the round started on {$a} with all its votes? This cannot be undone.';
 $string['editstation'] = 'Edit station';
+$string['entriesnum'] = '{$a} terms';
 $string['error:alreadyvoted'] = 'You have already voted in this round.';
 $string['error:invalidoptions'] = 'The selected answers are not valid for this vote.';
 $string['error:invalidtoken'] = 'This vote link is not valid. Please scan the current QR code.';
 $string['error:invalidvoter'] = 'Your vote could not be assigned. Please reload the page and try again.';
 $string['error:invalidwindow'] = 'The end must be after the start.';
+$string['error:invalidword'] = 'Please enter a term.';
 $string['error:noselection'] = 'Please select an answer.';
 $string['error:nostations'] = 'There are no stations to print.';
 $string['error:notastation'] = 'This round is not a station.';
@@ -46,18 +48,26 @@ $string['error:roundclosed'] = 'This voting round is closed.';
 $string['error:roundnotopen'] = 'Voting for this station has not started yet. Please come back during the voting window.';
 $string['error:toofewoptions'] = 'Please enter at least {$a} answer options.';
 $string['error:unknownaction'] = 'Unknown action.';
+$string['error:wordlimit'] = 'You have already submitted the maximum number of terms for this round.';
+$string['error:wordrepeated'] = 'You have already submitted this term.';
 $string['eventroundclosed'] = 'Voting round closed';
 $string['eventrounddeleted'] = 'Voting round deleted';
 $string['eventroundscheduled'] = 'Station scheduled';
 $string['eventroundstarted'] = 'Voting round started';
 $string['eventroundupdated'] = 'Station updated';
 $string['eventvotesubmitted'] = 'Vote submitted';
+$string['eventwordmoderated'] = 'Word cloud term hidden or shown';
+$string['eventwordsubmitted'] = 'Word cloud term submitted';
 $string['fullscreen'] = 'Full screen';
+$string['hideword'] = 'Hide';
+$string['maxwords'] = 'Terms per person';
+$string['maxwords_help'] = 'How many terms each person may submit per round. Each term counts once per person; equal terms from different people make the term bigger. You can change this value at any time.';
 $string['modelogin'] = 'Voting requires login.';
 $string['modemultiple'] = 'Several answers can be selected.';
 $string['modepublic'] = 'Voting works without login.';
+$string['moderatewords'] = 'Moderate terms';
 $string['modulename'] = 'QR vote';
-$string['modulename_help'] = 'A QR vote asks one question with fixed answers or a rating with 1 to 5 stars. The teacher starts a round and shows the QR code, for example on the projector. Participants scan the code with their smartphone and vote, without login if the activity allows it. The result is shown live as bars.
+$string['modulename_help'] = 'A QR vote asks one question with fixed answers, a rating with 1 to 5 stars or a word cloud. The teacher starts a round and shows the QR code, for example on the projector. Participants scan the code with their smartphone and vote, without login if the activity allows it. The result is shown live as bars.
 
 Each round has its own link. When the teacher closes the round, the link stops working, so an old QR code cannot be used again.
 
@@ -67,6 +77,7 @@ $string['multiple'] = 'Allow several answers';
 $string['multiple_help'] = 'If set to yes, voters can select more than one answer. The percentage of an answer is then the share of voters who selected it, so the percentages can add up to more than 100.';
 $string['noopenround'] = 'No voting round is open at the moment.';
 $string['noroundsyet'] = 'No round has been started yet. Start a round to show the QR code.';
+$string['nowordsyet'] = 'No terms yet.';
 $string['option'] = 'Answer option';
 $string['option_help'] = 'Enter one answer per field. Empty fields are ignored. At least two answers are needed. Once votes exist, the answers can no longer be changed so that results stay correct.';
 $string['optionno'] = 'Answer {no}';
@@ -84,8 +95,13 @@ $string['privacy:metadata:qrvote_votes'] = 'Votes of a round. Votes without logi
 $string['privacy:metadata:qrvote_votes:optionid'] = 'The answer the user selected.';
 $string['privacy:metadata:qrvote_votes:timecreated'] = 'The time of the vote.';
 $string['privacy:metadata:qrvote_votes:userid'] = 'The user who voted, stored only when the vote requires login.';
+$string['privacy:metadata:qrvote_words'] = 'Terms submitted to a word cloud. Terms without login contain no user id and only a keyed hash of a random device key.';
+$string['privacy:metadata:qrvote_words:timecreated'] = 'The time the term was submitted.';
+$string['privacy:metadata:qrvote_words:userid'] = 'The user who submitted the term, stored only when the vote requires login.';
+$string['privacy:metadata:qrvote_words:word'] = 'The submitted term.';
 $string['privacy:roundsstarted'] = 'Rounds started';
 $string['privacy:votes'] = 'Votes';
+$string['privacy:words'] = 'Terms';
 $string['publicdisabled'] = 'Disabled by the site administrator. Voting requires login.';
 $string['publicvote'] = 'Vote without login';
 $string['publicvote_help'] = 'If set to yes, anyone who scans the QR code of an open round can vote without logging in or registering. Each browser is counted once per round. This is suited for quick polls; it cannot fully prevent someone from voting twice with a second device or a private window.
@@ -120,6 +136,7 @@ $string['savestation'] = 'Save station';
 $string['scantovote'] = 'Scan to vote';
 $string['showresults'] = 'Show result to voters';
 $string['showresults_help'] = 'If set to yes, voters see the current result of the round after they have voted.';
+$string['showword'] = 'Show';
 $string['starsnum'] = '{$a} stars';
 $string['starsone'] = '1 star';
 $string['startround'] = 'Start new round';
@@ -136,6 +153,7 @@ $string['stationtitle_help'] = 'Title of the talk or workshop. Printed on the no
 $string['status'] = 'Status';
 $string['stopround'] = 'Close round';
 $string['submitvote'] = 'Vote';
+$string['submitword'] = 'Send';
 $string['votenow'] = 'Vote now';
 $string['voters'] = 'Voters';
 $string['votersnum'] = '{$a} voters';
@@ -147,8 +165,17 @@ $string['votetype_help'] = 'Answer options: voters choose from the answers you e
 
 Stars: voters give 1 to 5 stars, for example to rate a talk. The result shows the average rating and the distribution.
 
+Word cloud: voters enter short terms, for example to collect topics and ideas. Each person may submit several terms, up to the number you set.
+
 Once votes exist, the answer type can no longer be changed.';
 $string['votetypechoice'] = 'Answer options';
 $string['votetyperating'] = 'Stars (1 to 5)';
+$string['votetypewordcloud'] = 'Word cloud';
 $string['windowdays'] = '{$a->open} to {$a->close}';
 $string['windowsameday'] = '{$a->date}, {$a->open} to {$a->close}';
+$string['wordcloud'] = 'Word cloud';
+$string['wordcloudnote'] = 'Voters enter short terms, for example topics or ideas. Equal terms are grouped regardless of upper and lower case and appear bigger the more often they were sent. Terms appear immediately; you can hide single terms on the activity page.';
+$string['wordsaved'] = 'Thank you, your term has been saved.';
+$string['wordsdone'] = 'Thank you, you have submitted all your terms.';
+$string['wordsremaining'] = 'You can submit {$a} more terms.';
+$string['wordsremainingone'] = 'You can submit one more term.';

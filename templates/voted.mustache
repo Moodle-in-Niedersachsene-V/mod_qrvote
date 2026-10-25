@@ -25,6 +25,7 @@
     * title - Station title.
     * location - Station location.
     * window - Formatted voting window.
+    * iswordcloud - Whether the voter has submitted all terms of a word cloud.
     * question - Question, already formatted with format_text().
     * showresults - Whether the result is shown.
     * results - Result context for mod_qrvote/results.
@@ -36,6 +37,7 @@
         "title": "",
         "location": "",
         "window": "",
+        "iswordcloud": false,
         "question": "Which topic should we revise first?",
         "showresults": true,
         "results": {"roundid": 3, "open": true, "voters": 2, "options": [
@@ -45,7 +47,10 @@
 }}
 <div class="mod_qrvote-voted">
     {{>mod_qrvote/station}}
-    <div class="alert alert-success" role="status">{{#str}}votesaved, mod_qrvote{{/str}}</div>
+    <div class="alert alert-success" role="status">
+        {{#iswordcloud}}{{#str}}wordsdone, mod_qrvote{{/str}}{{/iswordcloud}}
+        {{^iswordcloud}}{{#str}}votesaved, mod_qrvote{{/str}}{{/iswordcloud}}
+    </div>
     <div class="mod_qrvote-question h5 mb-3">{{{question}}}</div>
     {{#showresults}}
     {{#results}}{{>mod_qrvote/results}}{{/results}}

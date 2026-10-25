@@ -38,8 +38,17 @@ class poll {
     /** @var int Voters give 1 to RATING_MAX stars. */
     public const TYPE_RATING = 1;
 
+    /** @var int Voters submit free terms that form a word cloud. */
+    public const TYPE_WORDCLOUD = 2;
+
     /** @var int Highest number of stars. */
     public const RATING_MAX = 5;
+
+    /** @var int Highest selectable number of terms per voter in a word cloud. */
+    public const MAXWORDS_LIMIT = 10;
+
+    /** @var int Default number of terms per voter in a word cloud. */
+    public const MAXWORDS_DEFAULT = 3;
 
     /**
      * Creates an instance and its options from the activity form data.
@@ -57,7 +66,7 @@ class poll {
 
         $transaction = $DB->start_delegated_transaction();
         $id = (int) $DB->insert_record('qrvote', $record);
-        self::save_options($id, self::option_texts($record, $data));
+        self::save_options($id, self::option_texts($record, $data), !self::is_wordcloud($record));
         $transaction->allow_commit();
         return $id;
     }
@@ -79,8 +88,9 @@ class poll {
         if (self::has_votes($record->id)) {
             // Answer type and mode stay as voted while results exist.
             unset($record->multiple, $record->votetype);
+            // The term limit may change at any time; it only applies to new submissions.
         } else {
-            self::save_options($record->id, self::option_texts($record, $data));
+            self::save_options($record->id, self::option_texts($record, $data), !self::is_wordcloud($record));
         }
         $DB->update_record('qrvote', $record);
         $transaction->allow_commit();
@@ -115,11 +125,13 @@ class poll {
     public static function delete_rounds(int $qrvoteid): void {
         global $DB;
 
-        $DB->delete_records_select(
-            'qrvote_votes',
-            'roundid IN (SELECT id FROM {qrvote_rounds} WHERE qrvoteid = ?)',
-            [$qrvoteid]
-        );
+        foreach (['qrvote_votes', 'qrvote_words'] as $table) {
+            $DB->delete_records_select(
+                $table,
+                'roundid IN (SELECT id FROM {qrvote_rounds} WHERE qrvoteid = ?)',
+                [$qrvoteid]
+            );
+        }
         $DB->delete_records('qrvote_rounds', ['qrvoteid' => $qrvoteid]);
     }
 
@@ -136,7 +148,7 @@ class poll {
     }
 
     /**
-     * Tells whether any round of the instance has received votes.
+     * Tells whether any round of the instance has received votes or terms.
      *
      * @param int $qrvoteid Instance id.
      * @return bool True when at least one vote exists.
@@ -148,7 +160,11 @@ class poll {
                   FROM {qrvote_votes} v
                   JOIN {qrvote_rounds} r ON r.id = v.roundid
                  WHERE r.qrvoteid = ?';
-        return $DB->record_exists_sql($sql, [$qrvoteid]);
+        $words = 'SELECT 1
+                    FROM {qrvote_words} w
+                    JOIN {qrvote_rounds} r ON r.id = w.roundid
+                   WHERE r.qrvoteid = ?';
+        return $DB->record_exists_sql($sql, [$qrvoteid]) || $DB->record_exists_sql($words, [$qrvoteid]);
     }
 
     /**
@@ -174,6 +190,27 @@ class poll {
     }
 
     /**
+     * Tells whether an instance is a word cloud.
+     *
+     * @param stdClass $qrvote Instance record.
+     * @return bool True for a word cloud.
+     */
+    public static function is_wordcloud(stdClass $qrvote): bool {
+        return (int) ($qrvote->votetype ?? self::TYPE_CHOICE) === self::TYPE_WORDCLOUD;
+    }
+
+    /**
+     * Returns the maximum number of terms a voter may submit per round.
+     *
+     * @param stdClass $qrvote Instance record.
+     * @return int Number between 1 and MAXWORDS_LIMIT.
+     */
+    public static function max_words(stdClass $qrvote): int {
+        $max = (int) ($qrvote->maxwords ?? self::MAXWORDS_DEFAULT);
+        return max(1, min(self::MAXWORDS_LIMIT, $max));
+    }
+
+    /**
      * Returns the number of stars an option of a rating stands for.
      *
      * @param stdClass $option Option record.
@@ -193,6 +230,9 @@ class poll {
     private static function option_texts(stdClass $record, stdClass $data): array {
         if (self::is_rating($record)) {
             return array_map('strval', range(1, self::RATING_MAX));
+        }
+        if (self::is_wordcloud($record)) {
+            return [];
         }
         return self::clean_option_texts($data->option ?? []);
     }
@@ -221,16 +261,20 @@ class poll {
      * @return stdClass Record without id and timestamps.
      */
     private static function instance_record(stdClass $data): stdClass {
-        $rating = (int) ($data->votetype ?? self::TYPE_CHOICE) === self::TYPE_RATING;
+        $votetype = (int) ($data->votetype ?? self::TYPE_CHOICE);
+        if (!in_array($votetype, [self::TYPE_CHOICE, self::TYPE_RATING, self::TYPE_WORDCLOUD], true)) {
+            $votetype = self::TYPE_CHOICE;
+        }
         return (object) [
             'course' => (int) $data->course,
             'name' => $data->name,
             'intro' => $data->intro ?? '',
             'introformat' => (int) ($data->introformat ?? FORMAT_HTML),
             'question' => trim($data->question),
-            // A rating always takes exactly one number of stars.
-            'multiple' => ($rating || empty($data->multiple)) ? 0 : 1,
-            'votetype' => $rating ? self::TYPE_RATING : self::TYPE_CHOICE,
+            // Several answers at once only exist for text options.
+            'multiple' => ($votetype === self::TYPE_CHOICE && !empty($data->multiple)) ? 1 : 0,
+            'votetype' => $votetype,
+            'maxwords' => max(1, min(self::MAXWORDS_LIMIT, (int) ($data->maxwords ?? self::MAXWORDS_DEFAULT))),
             'publicvote' => empty($data->publicvote) ? 0 : 1,
             'showresults' => empty($data->showresults) ? 0 : 1,
         ];
@@ -241,12 +285,13 @@ class poll {
      *
      * @param int $qrvoteid Instance id.
      * @param string[] $texts Cleaned option texts in display order.
+     * @param bool $optionsneeded False for a word cloud, which has no options.
      * @return void
      */
-    private static function save_options(int $qrvoteid, array $texts): void {
+    private static function save_options(int $qrvoteid, array $texts, bool $optionsneeded = true): void {
         global $DB;
 
-        if (count($texts) < self::OPTIONS_MIN) {
+        if ($optionsneeded && count($texts) < self::OPTIONS_MIN) {
             throw new \moodle_exception('error:toofewoptions', 'qrvote', '', self::OPTIONS_MIN);
         }
         $DB->delete_records('qrvote_options', ['qrvoteid' => $qrvoteid]);

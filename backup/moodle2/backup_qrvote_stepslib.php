@@ -40,7 +40,7 @@ class backup_qrvote_activity_structure_step extends backup_activity_structure_st
         $userinfo = $this->get_setting_value('userinfo');
 
         $qrvote = new backup_nested_element('qrvote', ['id'], [
-            'name', 'intro', 'introformat', 'question', 'multiple', 'publicvote', 'showresults', 'votetype',
+            'name', 'intro', 'introformat', 'question', 'multiple', 'publicvote', 'showresults', 'votetype', 'maxwords',
             'timecreated', 'timemodified',
         ]);
         $options = new backup_nested_element('options');
@@ -51,6 +51,8 @@ class backup_qrvote_activity_structure_step extends backup_activity_structure_st
         ]);
         $votes = new backup_nested_element('votes');
         $vote = new backup_nested_element('vote', ['id'], ['optionid', 'voterhash', 'userid', 'timecreated']);
+        $words = new backup_nested_element('words');
+        $word = new backup_nested_element('word', ['id'], ['word', 'normalized', 'voterhash', 'userid', 'hidden', 'timecreated']);
 
         $qrvote->add_child($options);
         $options->add_child($option);
@@ -58,12 +60,15 @@ class backup_qrvote_activity_structure_step extends backup_activity_structure_st
         $rounds->add_child($round);
         $round->add_child($votes);
         $votes->add_child($vote);
+        $round->add_child($words);
+        $words->add_child($word);
 
         $qrvote->set_source_table('qrvote', ['id' => backup::VAR_ACTIVITYID]);
         $option->set_source_table('qrvote_options', ['qrvoteid' => backup::VAR_PARENTID], 'sortorder ASC');
         if ($userinfo) {
             $round->set_source_table('qrvote_rounds', ['qrvoteid' => backup::VAR_PARENTID], 'id ASC');
             $vote->set_source_table('qrvote_votes', ['roundid' => backup::VAR_PARENTID], 'id ASC');
+            $word->set_source_table('qrvote_words', ['roundid' => backup::VAR_PARENTID], 'id ASC');
         } else {
             // Stations are part of the activity setup, so they are kept without user data; votes are not.
             $round->set_source_sql(
@@ -74,6 +79,7 @@ class backup_qrvote_activity_structure_step extends backup_activity_structure_st
 
         $round->annotate_ids('user', 'usermodified');
         $vote->annotate_ids('user', 'userid');
+        $word->annotate_ids('user', 'userid');
         $qrvote->annotate_files('mod_qrvote', 'intro', null);
 
         return $this->prepare_activity_structure($qrvote);

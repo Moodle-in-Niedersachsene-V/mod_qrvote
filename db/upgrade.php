@@ -60,5 +60,32 @@ function xmldb_qrvote_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026102403, 'qrvote');
     }
 
+    if ($oldversion < 2026102404) {
+        // Word cloud: maximum number of terms per voter and the table for submitted terms.
+        $table = new xmldb_table('qrvote');
+        $field = new xmldb_field('maxwords', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '3', 'votetype');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('qrvote_words');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('roundid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('word', XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('normalized', XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('voterhash', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('hidden', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('roundid', XMLDB_KEY_FOREIGN, ['roundid'], 'qrvote_rounds', ['id']);
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+        $table->add_index('roundvoterword', XMLDB_INDEX_UNIQUE, ['roundid', 'voterhash', 'normalized']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_mod_savepoint(true, 2026102404, 'qrvote');
+    }
+
     return true;
 }

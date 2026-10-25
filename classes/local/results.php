@@ -36,7 +36,8 @@ class results {
      * @param stdClass $qrvote Instance record.
      * @param stdClass $round Round record.
      * @param context_module $context Module context, used to format option texts.
-     * @return array Keys roundid, open, scheduled, voters, israting, hasaverage, average, averagestars and
+     * @return array Keys roundid, open, scheduled, voters, israting, hasaverage, average, averagestars,
+     *     iswordcloud, haswords, entries (visible terms), words (text, count, size) and
      *     options (id, text as plain text, votes, percent, stars).
      */
     public static function for_round(stdClass $qrvote, stdClass $round, context_module $context): array {
@@ -49,10 +50,12 @@ class results {
               GROUP BY o.id, o.text, o.sortorder
               ORDER BY o.sortorder ASC, o.id ASC';
         $rows = $DB->get_records_sql($sql, ['roundid' => $round->id, 'qrvoteid' => $qrvote->id]);
-        $voters = $DB->count_records_sql(
-            'SELECT COUNT(DISTINCT voterhash) FROM {qrvote_votes} WHERE roundid = ?',
-            [$round->id]
-        );
+        $wordcloud = poll::is_wordcloud($qrvote);
+        $votersql = $wordcloud
+            ? 'SELECT COUNT(DISTINCT voterhash) FROM {qrvote_words} WHERE roundid = ?'
+            : 'SELECT COUNT(DISTINCT voterhash) FROM {qrvote_votes} WHERE roundid = ?';
+        $voters = $DB->count_records_sql($votersql, [$round->id]);
+        $cloud = $wordcloud ? word_service::cloud($round) : ['entries' => 0, 'words' => []];
 
         $rating = poll::is_rating($qrvote);
         $options = [];
@@ -92,6 +95,10 @@ class results {
             'hasaverage' => $rating && $voters > 0,
             'average' => $rating && $voters > 0 ? format_float($average, 1) : '',
             'averagestars' => $rating && $voters > 0 ? self::stars_glyphs((int) round($average)) : '',
+            'iswordcloud' => $wordcloud,
+            'haswords' => !empty($cloud['words']),
+            'entries' => $cloud['entries'],
+            'words' => $cloud['words'],
             'options' => $options,
         ];
     }

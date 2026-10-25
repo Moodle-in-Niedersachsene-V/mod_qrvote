@@ -54,16 +54,7 @@ class vote_service {
     ): void {
         global $DB;
 
-        if ((int) $round->qrvoteid !== (int) $qrvote->id) {
-            throw new vote_rejected(vote_rejected::ROUND_CLOSED);
-        }
-        $state = round_manager::state($round);
-        if ($state === round_manager::STATE_SCHEDULED) {
-            throw new vote_rejected(vote_rejected::ROUND_NOT_OPEN);
-        }
-        if ($state !== round_manager::STATE_OPEN) {
-            throw new vote_rejected(vote_rejected::ROUND_CLOSED);
-        }
+        self::check_round($qrvote, $round);
         $optionids = self::validate_options($qrvote, $optionids);
         $voterhash = self::voter_hash($round, self::voter_key($voterkey, $userid));
 
@@ -126,6 +117,27 @@ class vote_service {
     }
 
     /**
+     * Checks that the round belongs to the vote and accepts votes now.
+     *
+     * @param stdClass $qrvote Instance record.
+     * @param stdClass $round Round record.
+     * @return void
+     * @throws vote_rejected When the round is foreign, not open yet or closed.
+     */
+    public static function check_round(stdClass $qrvote, stdClass $round): void {
+        if ((int) $round->qrvoteid !== (int) $qrvote->id) {
+            throw new vote_rejected(vote_rejected::ROUND_CLOSED);
+        }
+        $state = round_manager::state($round);
+        if ($state === round_manager::STATE_SCHEDULED) {
+            throw new vote_rejected(vote_rejected::ROUND_NOT_OPEN);
+        }
+        if ($state !== round_manager::STATE_OPEN) {
+            throw new vote_rejected(vote_rejected::ROUND_CLOSED);
+        }
+    }
+
+    /**
      * Checks that the options belong to the vote and match the answer mode.
      *
      * @param stdClass $qrvote Instance record.
@@ -156,7 +168,7 @@ class vote_service {
      * @return string Voter key.
      * @throws vote_rejected When a public voter key is malformed.
      */
-    private static function voter_key(string $voterkey, int $userid): string {
+    public static function voter_key(string $voterkey, int $userid): string {
         if ($userid > 0) {
             return 'user:' . $userid;
         }
@@ -173,7 +185,7 @@ class vote_service {
      * @param string $key Voter key.
      * @return string 64 hex characters.
      */
-    private static function voter_hash(stdClass $round, string $key): string {
+    public static function voter_hash(stdClass $round, string $key): string {
         return hash_hmac('sha256', $key, $round->secret);
     }
 }

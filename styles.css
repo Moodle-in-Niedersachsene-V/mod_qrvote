@@ -84,3 +84,43 @@
     margin: 0 auto;
     padding: 1rem;
 }
+
+.path-mod-qrvote .mod_qrvote-cloud {
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.path-mod-qrvote .mod_qrvote-cloud .list-inline-item {
+    margin: 0.15rem 0.5rem;
+}
+
+.path-mod-qrvote .mod_qrvote-cloud-1 {
+    font-size: 1rem;
+    color: #495057;
+}
+
+.path-mod-qrvote .mod_qrvote-cloud-2 {
+    font-size: 1.35rem;
+    color: #0f6cbf;
+}
+
+.path-mod-qrvote .mod_qrvote-cloud-3 {
+    font-size: 1.75rem;
+    color: #357a32;
+}
+
+.path-mod-qrvote .mod_qrvote-cloud-4 {
+    font-size: 2.25rem;
+    color: #7a3e9d;
+    font-weight: 600;
+}
+
+.path-mod-qrvote .mod_qrvote-cloud-5 {
+    font-size: 2.9rem;
+    color: #b0450e;
+    font-weight: 700;
+}
+
+.path-mod-qrvote .mod_qrvote-stage:fullscreen .mod_qrvote-cloud {
+    font-size: 1.6rem;
+}

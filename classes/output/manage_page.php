@@ -25,6 +25,7 @@ use core\output\templatable;
 use mod_qrvote\local\poll;
 use mod_qrvote\local\results;
 use mod_qrvote\local\round_manager;
+use mod_qrvote\local\word_service;
 use moodle_url;
 use stdClass;
 
@@ -96,7 +97,15 @@ class manage_page implements renderable, templatable {
                 'showqr' => $state !== round_manager::STATE_CLOSED,
                 'qrcode' => $state !== round_manager::STATE_CLOSED ? self::qr_data_uri($voteurl->out(false)) : '',
                 'results' => $results,
+                'moderation' => [],
+                'hasmoderation' => false,
             ];
+            if (poll::is_wordcloud($this->qrvote) && $this->canmanage) {
+                foreach (word_service::moderation_list($this->round) as $word) {
+                    $data['round']['moderation'][] = $word;
+                }
+                $data['round']['hasmoderation'] = !empty($data['round']['moderation']);
+            }
         }
 
         foreach (round_manager::list_rounds((int) $this->qrvote->id) as $round) {

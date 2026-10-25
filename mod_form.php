@@ -94,6 +94,7 @@ class mod_qrvote_mod_form extends moodleform_mod {
         $mform->addElement('select', 'votetype', get_string('votetype', 'qrvote'), [
             poll::TYPE_CHOICE => get_string('votetypechoice', 'qrvote'),
             poll::TYPE_RATING => get_string('votetyperating', 'qrvote'),
+            poll::TYPE_WORDCLOUD => get_string('votetypewordcloud', 'qrvote'),
         ]);
         $mform->setDefault('votetype', poll::TYPE_CHOICE);
         $mform->addHelpButton('votetype', 'votetype', 'qrvote');
@@ -101,10 +102,22 @@ class mod_qrvote_mod_form extends moodleform_mod {
         $mform->addElement('static', 'ratingnote', '', get_string('ratingnote', 'qrvote', poll::RATING_MAX));
         $mform->hideIf('ratingnote', 'votetype', 'neq', (string) poll::TYPE_RATING);
 
+        $mform->addElement('static', 'wordcloudnote', '', get_string('wordcloudnote', 'qrvote'));
+        $mform->hideIf('wordcloudnote', 'votetype', 'neq', (string) poll::TYPE_WORDCLOUD);
+        $mform->addElement(
+            'select',
+            'maxwords',
+            get_string('maxwords', 'qrvote'),
+            array_combine(range(1, poll::MAXWORDS_LIMIT), range(1, poll::MAXWORDS_LIMIT))
+        );
+        $mform->setDefault('maxwords', poll::MAXWORDS_DEFAULT);
+        $mform->addHelpButton('maxwords', 'maxwords', 'qrvote');
+        $mform->hideIf('maxwords', 'votetype', 'neq', (string) poll::TYPE_WORDCLOUD);
+
         $mform->addElement('selectyesno', 'multiple', get_string('multiple', 'qrvote'));
         $mform->setDefault('multiple', 0);
         $mform->addHelpButton('multiple', 'multiple', 'qrvote');
-        $mform->hideIf('multiple', 'votetype', 'eq', (string) poll::TYPE_RATING);
+        $mform->hideIf('multiple', 'votetype', 'neq', (string) poll::TYPE_CHOICE);
 
         $repeated = [
             $mform->createElement('text', 'option', get_string('optionno', 'qrvote'), ['size' => '60']),
@@ -113,7 +126,7 @@ class mod_qrvote_mod_form extends moodleform_mod {
             'option' => [
                 'type' => PARAM_TEXT,
                 'helpbutton' => ['option', 'qrvote'],
-                'hideif' => ['votetype', 'eq', (string) poll::TYPE_RATING],
+                'hideif' => ['votetype', 'neq', (string) poll::TYPE_CHOICE],
             ],
         ];
         $existing = empty($this->_instance) ? 0 : count(poll::get_options((int) $this->_instance));
@@ -128,12 +141,31 @@ class mod_qrvote_mod_form extends moodleform_mod {
             true
         );
 
-        $mform->hideIf('option_add_fields', 'votetype', 'eq', (string) poll::TYPE_RATING);
+        $mform->hideIf('option_add_fields', 'votetype', 'neq', (string) poll::TYPE_CHOICE);
 
         if ($locked) {
-            $frozen = ['multiple', 'votetype'];
+            // Frozen fields cannot follow the answer type any more, so fields of other types are removed.
+            $votetype = (int) ($this->current->votetype ?? poll::TYPE_CHOICE);
+            $choice = $votetype === poll::TYPE_CHOICE;
+            if ($votetype !== poll::TYPE_RATING) {
+                $mform->removeElement('ratingnote');
+            }
+            if ($votetype !== poll::TYPE_WORDCLOUD) {
+                $mform->removeElement('wordcloudnote');
+                $mform->removeElement('maxwords');
+            }
+            $frozen = ['votetype'];
             for ($index = 0; $index < $repeats; $index++) {
-                $frozen[] = 'option[' . $index . ']';
+                if ($choice) {
+                    $frozen[] = 'option[' . $index . ']';
+                } else {
+                    $mform->removeElement('option[' . $index . ']');
+                }
+            }
+            if ($choice) {
+                $frozen[] = 'multiple';
+            } else {
+                $mform->removeElement('multiple');
             }
             $mform->hardFreeze($frozen);
             $mform->removeElement('option_add_fields');
@@ -154,8 +186,8 @@ class mod_qrvote_mod_form extends moodleform_mod {
         if (empty($this->_instance)) {
             return;
         }
-        if (poll::is_rating((object) $defaultvalues)) {
-            // Star options are generated, the text fields stay empty.
+        if (poll::is_rating((object) $defaultvalues) || poll::is_wordcloud((object) $defaultvalues)) {
+            // Star options are generated and word clouds have none; the text fields stay empty.
             return;
         }
         $index = 0;
@@ -180,8 +212,8 @@ class mod_qrvote_mod_form extends moodleform_mod {
         }
 
         $locked = !empty($this->_instance) && poll::has_votes((int) $this->_instance);
-        $rating = (int) ($data['votetype'] ?? poll::TYPE_CHOICE) === poll::TYPE_RATING;
-        if (!$locked && !$rating) {
+        $choice = (int) ($data['votetype'] ?? poll::TYPE_CHOICE) === poll::TYPE_CHOICE;
+        if (!$locked && $choice) {
             $texts = $data['option'] ?? [];
             if (count(poll::clean_option_texts($texts)) < poll::OPTIONS_MIN) {
                 $errors['option[0]'] = get_string('error:toofewoptions', 'qrvote', poll::OPTIONS_MIN);

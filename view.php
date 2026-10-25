@@ -24,6 +24,7 @@
 
 use mod_qrvote\local\poll;
 use mod_qrvote\local\round_manager;
+use mod_qrvote\local\word_service;
 use mod_qrvote\output\manage_page;
 
 require(__DIR__ . '/../../config.php');
@@ -32,6 +33,7 @@ $id = required_param('id', PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
 $roundid = optional_param('roundid', 0, PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
+$word = optional_param('word', '', PARAM_TEXT);
 
 [$course, $cm] = get_course_and_cm_from_cmid($id, 'qrvote');
 $qrvote = $DB->get_record('qrvote', ['id' => $cm->instance], '*', MUST_EXIST);
@@ -58,6 +60,10 @@ if ($action !== '' && $canmanage && data_submitted()) {
         redirect(new moodle_url($url, ['roundid' => $round->id]));
     }
     $round = round_manager::get((int) $qrvote->id, $roundid);
+    if ($action === 'hideword' || $action === 'showword') {
+        word_service::set_hidden($round, $word, $action === 'hideword', $context);
+        redirect(new moodle_url($url, ['roundid' => $round->id]));
+    }
     if ($action === 'stop') {
         round_manager::close($round, $context);
         redirect(new moodle_url($url, ['roundid' => $round->id]));

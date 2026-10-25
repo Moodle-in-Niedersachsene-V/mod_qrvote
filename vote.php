@@ -31,12 +31,14 @@
 // phpcs:disable moodle.Files.RequireLogin.Missing -- Public by design, see the file docblock; access is checked by token.
 
 use mod_qrvote\form\vote_form;
+use mod_qrvote\form\word_form;
 use mod_qrvote\local\poll;
 use mod_qrvote\local\rate_limiter;
 use mod_qrvote\local\results;
 use mod_qrvote\local\round_manager;
 use mod_qrvote\local\vote_rejected;
 use mod_qrvote\local\vote_service;
+use mod_qrvote\local\word_service;
 
 require(__DIR__ . '/../../config.php');
 
@@ -83,6 +85,7 @@ $pagedata = [
     'location' => $isstation ? format_string($round->location, true, ['context' => $context, 'escape' => false]) : '',
     'window' => $isstation ? round_manager::format_window((int) $round->timeopen, (int) $round->timeclose) : '',
     'showresults' => !empty($qrvote->showresults) && $voted,
+    'iswordcloud' => poll::is_wordcloud($qrvote),
     'results' => results::for_round($qrvote, $round, $context),
 ];
 
@@ -91,6 +94,53 @@ if ($state !== round_manager::STATE_OPEN) {
     echo $OUTPUT->header();
     $template = $state === round_manager::STATE_SCHEDULED ? 'mod_qrvote/notopen' : 'mod_qrvote/closed';
     echo $OUTPUT->render_from_template($template, $pagedata);
+    echo $OUTPUT->footer();
+    exit;
+}
+
+if (poll::is_wordcloud($qrvote)) {
+    // Several terms per voter: the device key of this session counts the terms already sent.
+    $voterkey = $SESSION->mod_qrvote_voterkey[$round->id] ?? vote_service::new_voter_key();
+    $remaining = word_service::remaining($qrvote, $round, $voterkey, $userid);
+    $submitted = $remaining < poll::max_words($qrvote);
+    $pagedata['showresults'] = !empty($qrvote->showresults) && $submitted;
+
+    $form = new word_form($url, [
+        'token' => $round->token,
+        'voterkey' => $voterkey,
+        'question' => format_string($qrvote->question, true, ['context' => $context]),
+        'remaining' => $remaining,
+    ]);
+    $error = '';
+    if ($remaining > 0 && ($data = $form->get_data())) {
+        try {
+            rate_limiter::hit(getremoteaddr());
+            word_service::submit($qrvote, $round, $data->word, $data->voterkey, $userid, $context);
+            $SESSION->mod_qrvote_voterkey[$round->id] = $data->voterkey;
+            redirect($url, get_string('wordsaved', 'qrvote'), null, \core\output\notification::NOTIFY_SUCCESS);
+        } catch (vote_rejected $e) {
+            $SESSION->mod_qrvote_voterkey[$round->id] = $data->voterkey;
+            $error = $e->getMessage();
+        }
+    }
+
+    echo $OUTPUT->header();
+    if ($remaining === 0) {
+        echo $OUTPUT->render_from_template('mod_qrvote/voted', $pagedata);
+        echo $OUTPUT->footer();
+        exit;
+    }
+    echo $OUTPUT->render_from_template('mod_qrvote/station', $pagedata);
+    if ($error !== '') {
+        echo $OUTPUT->notification($error, \core\output\notification::NOTIFY_ERROR);
+    }
+    $form->display();
+    if ($pagedata['showresults']) {
+        echo $OUTPUT->render_from_template('mod_qrvote/results', $pagedata['results']);
+    }
+    if ($public) {
+        $PAGE->requires->js_call_amd('mod_qrvote/voterkey', 'init');
+    }
     echo $OUTPUT->footer();
     exit;
 }

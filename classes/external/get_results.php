@@ -84,6 +84,16 @@ class get_results extends external_api {
             'hasaverage' => new external_value(PARAM_BOOL, 'Whether an average rating exists'),
             'average' => new external_value(PARAM_TEXT, 'Average rating, formatted with one decimal; empty without votes'),
             'averagestars' => new external_value(PARAM_TEXT, 'Average rating as star glyphs; empty without votes'),
+            'iswordcloud' => new external_value(PARAM_BOOL, 'Whether voters submit terms for a word cloud'),
+            'haswords' => new external_value(PARAM_BOOL, 'Whether visible terms exist'),
+            'entries' => new external_value(PARAM_INT, 'Number of visible submitted terms'),
+            'words' => new external_multiple_structure(
+                new external_single_structure([
+                    'text' => new external_value(PARAM_TEXT, 'Term as plain text'),
+                    'count' => new external_value(PARAM_INT, 'How often the term was submitted'),
+                    'size' => new external_value(PARAM_INT, 'Font size step from 1 to 5'),
+                ])
+            ),
             'options' => new external_multiple_structure(
                 new external_single_structure([
                     'id' => new external_value(PARAM_INT, 'Option id'),

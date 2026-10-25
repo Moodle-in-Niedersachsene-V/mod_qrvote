@@ -39,6 +39,15 @@ class vote_rejected extends \moodle_exception {
     /** @var string The voter key is malformed. */
     public const INVALID_VOTER = 'error:invalidvoter';
 
+    /** @var string The term is empty after cleaning. */
+    public const INVALID_WORD = 'error:invalidword';
+
+    /** @var string This voter has already submitted the term in the round. */
+    public const WORD_REPEATED = 'error:wordrepeated';
+
+    /** @var string This voter has reached the maximum number of terms in the round. */
+    public const WORD_LIMIT = 'error:wordlimit';
+
     /** @var string Too many submissions from the same network address. */
     public const RATE_LIMITED = 'error:ratelimited';
 

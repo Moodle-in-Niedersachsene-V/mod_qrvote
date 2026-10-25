@@ -15,7 +15,8 @@
         <FIELD NAME="multiple" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if voters may select more than one option"/>
         <FIELD NAME="publicvote" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1 if voting works without login"/>
         <FIELD NAME="showresults" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if voters see the result after voting"/>
-        <FIELD NAME="votetype" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="0 answer options, 1 rating with 1 to 5 stars"/>
+        <FIELD NAME="votetype" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="0 answer options, 1 rating with 1 to 5 stars, 2 word cloud"/>
+        <FIELD NAME="maxwords" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="3" SEQUENCE="false" COMMENT="Word cloud: maximum number of terms per voter and round"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -77,6 +78,26 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="roundvoteroption" UNIQUE="true" FIELDS="roundid, voterhash, optionid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="qrvote_words" COMMENT="Terms submitted to a word cloud round">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="roundid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="word" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" COMMENT="Term as entered, plain text"/>
+        <FIELD NAME="normalized" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" COMMENT="Lower-case term used to group equal terms"/>
+        <FIELD NAME="voterhash" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="HMAC of the voter key with the round secret"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Only set when the vote requires login"/>
+        <FIELD NAME="hidden" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if a teacher has hidden the term"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="roundid" TYPE="foreign" FIELDS="roundid" REFTABLE="qrvote_rounds" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="roundvoterword" UNIQUE="true" FIELDS="roundid, voterhash, normalized"/>
       </INDEXES>
     </TABLE>
   </TABLES>

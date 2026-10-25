@@ -10,6 +10,8 @@ Maintained by **Moodle in Niedersachsen e. V.**
 
 - One question with fixed answers (single or multiple choice) or a rating with 1 to 5 stars.
   A rating shows the average and how often each number of stars was given.
+- Word cloud for collecting topics and ideas: each person may submit up to 1 to 10 terms per round
+  (set per activity); equal terms grow bigger.
 - Voting rounds: each round has its own random link. Closing the round, or reaching the maximum
   round duration, makes the link and its QR code invalid.
 - Voting without login (optional per activity, can be switched off for the whole site).
@@ -52,6 +54,21 @@ Set *Answer type* to *Stars (1 to 5)* in the activity settings. Voters tap a sta
 one decimal and the distribution, five stars first. Stations can use star ratings too, which suits
 feedback on talks. Browsers without support for the CSS `:has()` selector show plain radio buttons
 next to the stars, so voting always works.
+
+## Word cloud
+
+Set *Answer type* to *Word cloud* and choose *Terms per person* (1 to 10, default 3). Voters enter
+one short term at a time (up to 40 characters) until they reach the limit.
+
+- Equal terms are grouped regardless of upper and lower case; the more people send a term, the
+  bigger it appears (five size steps, up to 100 terms shown).
+- One person cannot send the same term twice in a round, so a single device cannot inflate a term.
+- Terms appear immediately. Teachers open *Moderate terms* below the cloud and hide or show single
+  terms; hidden terms disappear from the projector and from voters' view at the next refresh.
+- The limit counts per browser (public voting) or per user (login mode), like other votes; it can
+  be changed at any time.
+- Terms are free text. In login mode they are personal data and are exported and deleted by the
+  privacy provider; public terms carry no user id.
 
 ## Stations (printed QR codes)
 
@@ -120,6 +137,9 @@ auf Wunsch ohne Anmeldung. Das Ergebnis erscheint live als Balken.
   Rundendauer ungültig wird.
 - Antwortart Sterne: Abstimmende vergeben 1 bis 5 Sterne; das Ergebnis zeigt Durchschnitt und
   Verteilung.
+- Antwortart Wortwolke: Abstimmende reichen je Runde bis zu 1 bis 10 Begriffe ein (einstellbar,
+  Standard 3). Gleiche Begriffe werden zusammengefasst und erscheinen größer; die Lehrkraft kann
+  einzelne Begriffe ausblenden.
 - Stationen für Tagungen und Projekttage: je Vortrag eine Runde mit Titel, Raum und festem
   Zeitfenster. Die QR-Codes stehen vorab fest und lassen sich als PDF-Aushang drucken (ein A4-Blatt
   je Station). Vor Beginn zeigt der Code einen Wartehinweis, nach dem Ende ist die Station beendet.

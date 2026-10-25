@@ -314,7 +314,7 @@ class round_manager {
     }
 
     /**
-     * Deletes a round and all its votes.
+     * Deletes a round with all its votes and terms.
      *
      * @param stdClass $round Round record.
      * @param context_module $context Module context.
@@ -325,6 +325,7 @@ class round_manager {
 
         $transaction = $DB->start_delegated_transaction();
         $DB->delete_records('qrvote_votes', ['roundid' => $round->id]);
+        $DB->delete_records('qrvote_words', ['roundid' => $round->id]);
         $DB->delete_records('qrvote_rounds', ['id' => $round->id]);
         $transaction->allow_commit();
 
@@ -448,13 +449,19 @@ class round_manager {
     public static function list_rounds(int $qrvoteid): array {
         global $DB;
 
+        // A round holds either votes or terms, so the two distinct counts add up to the voters.
         $sql = 'SELECT r.id, r.status, r.timestarted, r.timeclosed, r.title, r.location, r.timeopen, r.timeclose,
-                       COUNT(DISTINCT v.voterhash) AS voters
+                       COUNT(DISTINCT v.voterhash) AS votevoters, COUNT(DISTINCT w.voterhash) AS wordvoters
                   FROM {qrvote_rounds} r
              LEFT JOIN {qrvote_votes} v ON v.roundid = r.id
+             LEFT JOIN {qrvote_words} w ON w.roundid = r.id
                  WHERE r.qrvoteid = ?
               GROUP BY r.id, r.status, r.timestarted, r.timeclosed, r.title, r.location, r.timeopen, r.timeclose
               ORDER BY r.timestarted DESC, r.id DESC';
-        return $DB->get_records_sql($sql, [$qrvoteid]);
+        $rounds = $DB->get_records_sql($sql, [$qrvoteid]);
+        foreach ($rounds as $round) {
+            $round->voters = (int) $round->votevoters + (int) $round->wordvoters;
+        }
+        return $rounds;
     }
 }

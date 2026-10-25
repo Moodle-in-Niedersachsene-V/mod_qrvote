@@ -33,11 +33,13 @@ $string['cannotvote'] = 'Sie können in dieser Aktivität nicht abstimmen.';
 $string['deleteround'] = 'Runde löschen';
 $string['deleteroundconfirm'] = 'Möchten Sie die am {$a} gestartete Runde mit allen Stimmen wirklich löschen? Das kann nicht rückgängig gemacht werden.';
 $string['editstation'] = 'Station bearbeiten';
+$string['entriesnum'] = '{$a} Begriffe';
 $string['error:alreadyvoted'] = 'Sie haben in dieser Runde bereits abgestimmt.';
 $string['error:invalidoptions'] = 'Die gewählten Antworten sind für diese Abstimmung nicht gültig.';
 $string['error:invalidtoken'] = 'Dieser Abstimmungslink ist ungültig. Bitte scannen Sie den aktuellen QR-Code.';
 $string['error:invalidvoter'] = 'Ihre Stimme konnte nicht zugeordnet werden. Bitte laden Sie die Seite neu und versuchen Sie es erneut.';
 $string['error:invalidwindow'] = 'Das Ende muss nach dem Beginn liegen.';
+$string['error:invalidword'] = 'Bitte geben Sie einen Begriff ein.';
 $string['error:noselection'] = 'Bitte wählen Sie eine Antwort aus.';
 $string['error:nostations'] = 'Es gibt keine Stationen zum Drucken.';
 $string['error:notastation'] = 'Diese Runde ist keine Station.';
@@ -46,18 +48,26 @@ $string['error:roundclosed'] = 'Diese Abstimmungsrunde ist beendet.';
 $string['error:roundnotopen'] = 'Die Abstimmung für diese Station hat noch nicht begonnen. Bitte kommen Sie im Abstimmungszeitraum wieder.';
 $string['error:toofewoptions'] = 'Bitte geben Sie mindestens {$a} Antwortmöglichkeiten ein.';
 $string['error:unknownaction'] = 'Unbekannte Aktion.';
+$string['error:wordlimit'] = 'Sie haben bereits die Höchstzahl an Begriffen für diese Runde eingereicht.';
+$string['error:wordrepeated'] = 'Diesen Begriff haben Sie bereits eingereicht.';
 $string['eventroundclosed'] = 'Abstimmungsrunde beendet';
 $string['eventrounddeleted'] = 'Abstimmungsrunde gelöscht';
 $string['eventroundscheduled'] = 'Station angelegt';
 $string['eventroundstarted'] = 'Abstimmungsrunde gestartet';
 $string['eventroundupdated'] = 'Station geändert';
 $string['eventvotesubmitted'] = 'Stimme abgegeben';
+$string['eventwordmoderated'] = 'Begriff der Wortwolke aus- oder eingeblendet';
+$string['eventwordsubmitted'] = 'Begriff für die Wortwolke eingereicht';
 $string['fullscreen'] = 'Vollbild';
+$string['hideword'] = 'Ausblenden';
+$string['maxwords'] = 'Begriffe je Person';
+$string['maxwords_help'] = 'Wie viele Begriffe jede Person je Runde einreichen darf. Jeder Begriff zählt je Person einmal; gleiche Begriffe verschiedener Personen lassen den Begriff größer erscheinen. Der Wert lässt sich jederzeit ändern.';
 $string['modelogin'] = 'Abstimmen erfordert eine Anmeldung.';
 $string['modemultiple'] = 'Mehrere Antworten sind möglich.';
 $string['modepublic'] = 'Abstimmen ist ohne Anmeldung möglich.';
+$string['moderatewords'] = 'Begriffe moderieren';
 $string['modulename'] = 'QR-Abstimmung';
-$string['modulename_help'] = 'Eine QR-Abstimmung stellt eine Frage mit festen Antworten oder einer Bewertung mit 1 bis 5 Sternen. Die Lehrkraft startet eine Runde und zeigt den QR-Code, zum Beispiel am Beamer. Die Teilnehmenden scannen den Code mit dem Smartphone und stimmen ab, ohne Anmeldung, wenn die Aktivität das erlaubt. Das Ergebnis erscheint live als Balken.
+$string['modulename_help'] = 'Eine QR-Abstimmung stellt eine Frage mit festen Antworten, einer Bewertung mit 1 bis 5 Sternen oder als Wortwolke. Die Lehrkraft startet eine Runde und zeigt den QR-Code, zum Beispiel am Beamer. Die Teilnehmenden scannen den Code mit dem Smartphone und stimmen ab, ohne Anmeldung, wenn die Aktivität das erlaubt. Das Ergebnis erscheint live als Balken.
 
 Jede Runde hat einen eigenen Link. Beendet die Lehrkraft die Runde, wird der Link ungültig, sodass ein alter QR-Code nicht erneut verwendet werden kann.
 
@@ -67,6 +77,7 @@ $string['multiple'] = 'Mehrere Antworten erlauben';
 $string['multiple_help'] = 'Bei "Ja" können Abstimmende mehr als eine Antwort wählen. Der Prozentwert einer Antwort ist dann der Anteil der Abstimmenden, die sie gewählt haben; die Summe kann daher über 100 liegen.';
 $string['noopenround'] = 'Zurzeit ist keine Abstimmungsrunde geöffnet.';
 $string['noroundsyet'] = 'Es wurde noch keine Runde gestartet. Starten Sie eine Runde, um den QR-Code anzuzeigen.';
+$string['nowordsyet'] = 'Noch keine Begriffe.';
 $string['option'] = 'Antwortmöglichkeit';
 $string['option_help'] = 'Geben Sie je Feld eine Antwort ein. Leere Felder werden ignoriert. Es sind mindestens zwei Antworten nötig. Sobald Stimmen vorliegen, lassen sich die Antworten nicht mehr ändern, damit die Ergebnisse stimmen.';
 $string['optionno'] = 'Antwort {no}';
@@ -84,8 +95,13 @@ $string['privacy:metadata:qrvote_votes'] = 'Stimmen einer Runde. Stimmen ohne An
 $string['privacy:metadata:qrvote_votes:optionid'] = 'Die gewählte Antwort.';
 $string['privacy:metadata:qrvote_votes:timecreated'] = 'Der Zeitpunkt der Stimmabgabe.';
 $string['privacy:metadata:qrvote_votes:userid'] = 'Die abstimmende Person, nur gespeichert, wenn die Abstimmung eine Anmeldung erfordert.';
+$string['privacy:metadata:qrvote_words'] = 'Für eine Wortwolke eingereichte Begriffe. Begriffe ohne Anmeldung enthalten keine Nutzer-ID, sondern nur einen verschlüsselten Hash eines zufälligen Geräteschlüssels.';
+$string['privacy:metadata:qrvote_words:timecreated'] = 'Der Zeitpunkt der Einreichung.';
+$string['privacy:metadata:qrvote_words:userid'] = 'Die einreichende Person, nur gespeichert, wenn die Abstimmung eine Anmeldung erfordert.';
+$string['privacy:metadata:qrvote_words:word'] = 'Der eingereichte Begriff.';
 $string['privacy:roundsstarted'] = 'Gestartete Runden';
 $string['privacy:votes'] = 'Stimmen';
+$string['privacy:words'] = 'Begriffe';
 $string['publicdisabled'] = 'Von der Administration deaktiviert. Abstimmen erfordert eine Anmeldung.';
 $string['publicvote'] = 'Abstimmen ohne Anmeldung';
 $string['publicvote_help'] = 'Bei "Ja" kann jede Person, die den QR-Code einer offenen Runde scannt, ohne Anmeldung oder Registrierung abstimmen. Jeder Browser wird je Runde einmal gezählt. Das eignet sich für schnelle Umfragen; eine doppelte Stimmabgabe mit einem zweiten Gerät oder einem privaten Fenster lässt sich damit nicht vollständig verhindern.
@@ -120,6 +136,7 @@ $string['savestation'] = 'Station speichern';
 $string['scantovote'] = 'Zum Abstimmen scannen';
 $string['showresults'] = 'Ergebnis den Abstimmenden zeigen';
 $string['showresults_help'] = 'Bei "Ja" sehen Abstimmende nach ihrer Stimmabgabe das aktuelle Ergebnis der Runde.';
+$string['showword'] = 'Einblenden';
 $string['starsnum'] = '{$a} Sterne';
 $string['starsone'] = '1 Stern';
 $string['startround'] = 'Neue Runde starten';
@@ -136,6 +153,7 @@ $string['stationtitle_help'] = 'Titel des Vortrags oder Workshops. Steht auf dem
 $string['status'] = 'Status';
 $string['stopround'] = 'Runde beenden';
 $string['submitvote'] = 'Abstimmen';
+$string['submitword'] = 'Absenden';
 $string['votenow'] = 'Jetzt abstimmen';
 $string['voters'] = 'Abstimmende';
 $string['votersnum'] = '{$a} Abstimmende';
@@ -147,8 +165,17 @@ $string['votetype_help'] = 'Antworten zur Auswahl: Abstimmende wählen aus den A
 
 Sterne: Abstimmende vergeben 1 bis 5 Sterne, zum Beispiel zur Bewertung eines Vortrags. Das Ergebnis zeigt die Durchschnittsbewertung und die Verteilung.
 
+Wortwolke: Abstimmende geben kurze Begriffe ein, zum Beispiel um Themen und Ideen zu sammeln. Jede Person darf mehrere Begriffe einreichen, bis zur eingestellten Höchstzahl.
+
 Sobald Stimmen vorliegen, lässt sich die Antwortart nicht mehr ändern.';
 $string['votetypechoice'] = 'Antworten zur Auswahl';
 $string['votetyperating'] = 'Sterne (1 bis 5)';
+$string['votetypewordcloud'] = 'Wortwolke';
 $string['windowdays'] = '{$a->open} bis {$a->close}';
 $string['windowsameday'] = '{$a->date}, {$a->open} bis {$a->close}';
+$string['wordcloud'] = 'Wortwolke';
+$string['wordcloudnote'] = 'Abstimmende geben kurze Begriffe ein, zum Beispiel Themen oder Ideen. Gleiche Begriffe werden unabhängig von Groß- und Kleinschreibung zusammengefasst und erscheinen umso größer, je öfter sie eingereicht wurden. Begriffe erscheinen sofort; einzelne Begriffe können Sie auf der Aktivitätsseite ausblenden.';
+$string['wordsaved'] = 'Danke, Ihr Begriff wurde gespeichert.';
+$string['wordsdone'] = 'Danke, Sie haben alle Ihre Begriffe eingereicht.';
+$string['wordsremaining'] = 'Sie können noch {$a} Begriffe einreichen.';
+$string['wordsremainingone'] = 'Sie können noch einen Begriff einreichen.';
